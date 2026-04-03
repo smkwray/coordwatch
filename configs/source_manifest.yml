@@ -20,6 +20,8 @@ nyfed:
   primary_dealer_history_template: https://markets.newyorkfed.org/api/pd/get/{keyid}.json
   primary_dealer_latest_template: https://markets.newyorkfed.org/api/pd/latest/{seriesbreak}.json
   primary_dealer_legacy_excel: https://www.newyorkfed.org/medialibrary/media/banking/reportingforms/primarystats/dealexcel.xls?la=en
+  markets_api_docs: https://markets.newyorkfed.org/static/docs/markets-api.html
+  soma_holdings_read: https://markets.newyorkfed.org/read
   term_premia_landing: https://www.newyorkfed.org/research/data_indicators/term-premia-tabs
 
 fred:

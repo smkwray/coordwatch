@@ -15,15 +15,15 @@ fred_core_series:
 quarter_variables:
   privately_held_net_marketable_borrowing_bn: Treasury financing need control
   cash_balance_assumption_bn: TGA target assumed in Treasury statement
-  expected_soma_redemptions_dv01: Fed balance-sheet supply pressure at refunding frequency
-  coupon_dv01_shock: duration effect of coupon-size changes versus carry-forward baseline
+  expected_soma_redemptions_dv01: duration-equivalent Fed runoff pressure at refunding frequency
+  coupon_dv01_shock: duration-equivalent effect of coupon-size changes versus carry-forward baseline
   bill_dv01_offset: short-maturity offset proxy
-  buyback_offset_dv01: duration removed by Treasury buybacks
+  buyback_offset_dv01: duration-equivalent burden removed by Treasury buybacks
   mix_shock_dv01: headline Treasury composition shock
 
 weekly_variables:
-  qt_runoff_dv01: weekly positive-private-burden measure from Fed Treasury holdings decline
-  coupon_dv01_shock: current-quarter coupon duration shock carried into weekly panel
+  qt_runoff_dv01: weekly holdings-based duration-equivalent private burden from Fed Treasury runoff
+  coupon_dv01_shock: current-quarter coupon duration-equivalent shock carried into weekly panel
   bill_dv01_offset: current-quarter bill offset carried into weekly panel
   duration_pressure_dv01: qt_runoff_dv01 plus coupon_dv01_shock minus buyback offset
   system_liquidity_bn: reserves plus ON RRP

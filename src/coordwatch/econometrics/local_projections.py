@@ -16,8 +16,18 @@ class LPBundle:
 
 
 def _estimate_single_horizon(df: pd.DataFrame, outcome: str, horizon: int, shock: str, interaction: str, controls: list[str], cov_type: str, hac_lags: int) -> dict:
-    work = df.copy().reset_index(drop=True)
-    work[f"lhs_h{horizon}"] = work[outcome].shift(-horizon) - work[outcome].shift(1)
+    work = df.copy()
+    work["week"] = pd.to_datetime(work["week"], errors="coerce")
+    work = work.sort_values("week").drop_duplicates(subset=["week"]).reset_index(drop=True)
+
+    future = work[["week", outcome]].copy().rename(columns={outcome: f"{outcome}_future"})
+    future["week"] = future["week"] - pd.to_timedelta(horizon * 7, unit="D")
+
+    lagged = work[["week", outcome]].copy().rename(columns={outcome: f"{outcome}_lag1"})
+    lagged["week"] = lagged["week"] + pd.to_timedelta(7, unit="D")
+
+    work = work.merge(future, on="week", how="left").merge(lagged, on="week", how="left")
+    work[f"lhs_h{horizon}"] = work[f"{outcome}_future"] - work[f"{outcome}_lag1"]
     cols = [f"lhs_h{horizon}", shock, interaction] + controls
     sub = work[cols].copy()
     sub = sub.dropna()
@@ -56,19 +66,27 @@ def _estimate_single_horizon(df: pd.DataFrame, outcome: str, horizon: int, shock
 
 def run_local_projections(df: pd.DataFrame, outcome: str) -> LPBundle:
     spec = load_model_specs()["local_projections"]
+    work = df.copy()
+    work["week"] = pd.to_datetime(work["week"], errors="coerce")
+    work = work.sort_values("week").drop_duplicates(subset=["week"]).reset_index(drop=True)
+    if len(work) > 1:
+        deltas = work["week"].diff().dropna()
+        is_weekly = bool((deltas == pd.Timedelta(days=7)).all())
+        if not is_weekly:
+            raise ValueError("Local projections require a true weekly panel with 7-day spacing.")
     horizons = spec["horizons"]
     shock = spec["shock"]
     interaction = spec["interaction"]
-    controls = [c for c in spec.get("controls", []) if c in df.columns]
+    controls = [c for c in spec.get("controls", []) if c in work.columns]
     cov_type = spec.get("cov_type", "HAC")
     hac_lags = int(spec.get("hac_lags", 4))
 
     rows = []
     for h in horizons:
-        est = _estimate_single_horizon(df, outcome=outcome, horizon=h, shock=shock, interaction=interaction, controls=controls, cov_type=cov_type, hac_lags=hac_lags)
+        est = _estimate_single_horizon(work, outcome=outcome, horizon=h, shock=shock, interaction=interaction, controls=controls, cov_type=cov_type, hac_lags=hac_lags)
         if isinstance(est, list):
             rows.extend(est)
         else:
             rows.append(est)
     table = pd.DataFrame(rows)
-    return LPBundle(table=table, design_sample=df.copy())
+    return LPBundle(table=table, design_sample=work.copy())

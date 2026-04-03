@@ -2,13 +2,13 @@
 
 **[Live site](https://smkwray.github.io/coordwatch/)**
 
-Measuring operational interdependence between Federal Reserve balance-sheet policy and Treasury debt management.
+Tracking how Fed runoff, Treasury issuance, the TGA, ON RRP, and dealer balance sheets interact under ample reserves.
 
 ## Question
 
-**Under an ample-reserves regime, does Treasury debt management partly offset or amplify the effects of Fed QT?**
+**How do Fed runoff, Treasury debt management, and liquidity conditions combine under an ample-reserves regime?**
 
-The effective stance of monetary conditions depends jointly on Fed balance-sheet runoff, Treasury issuance composition, TGA management, and private intermediation capacity. CoordWatch follows the balance sheets using free public data.
+The effective stance of monetary conditions depends jointly on Fed balance-sheet runoff, Treasury issuance composition, TGA management, ON RRP drainage, and private intermediation capacity. CoordWatch follows the balance sheets using free public data.
 
 ## What it measures
 
@@ -65,4 +65,4 @@ make verify        Check all artifacts present
 
 - **Positive Fed pressure** = more duration burden on private sector.
 - **Positive buyback offset** = Treasury removes duration from private hands.
-- **Motive-neutral language.** Measures operational alignment; does not claim coordination.
+- **Motive-neutral language.** Measures balance-sheet interactions and market effects; does not infer intent.

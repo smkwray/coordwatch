@@ -102,15 +102,15 @@ def _quarterly_demo(seed: int = 42) -> pd.DataFrame:
 
     def classify(row):
         if row["debt_limit_flag"] == 1 or row["quarter"].startswith("2020"):
-            return "confounded_mechanical"
+            return "confounded_window"
         if row["expected_soma_redemptions_dv01"] > 0 and row["mix_shock_dv01"] < 0:
-            return "offsetting_coordination"
+            return "offsetting_interaction"
         if row["expected_soma_redemptions_dv01"] > 0 and row["mix_shock_dv01"] > 0:
-            return "amplifying_coordination"
-        return "neutral_independence"
+            return "amplifying_interaction"
+        return "neutral_window"
 
     df["classification_prior"] = df.apply(classify, axis=1)
-    df["clean_sample_flag"] = (~df["classification_prior"].eq("confounded_mechanical")).astype(int)
+    df["clean_sample_flag"] = (~df["classification_prior"].eq("confounded_window")).astype(int)
     df["statement_title"] = "Demo refunding statement"
     df["statement_url"] = "demo://refunding_panel_demo.csv"
     return df

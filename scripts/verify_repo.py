@@ -43,6 +43,7 @@ def main() -> None:
         # Descriptive tables
         TABLES_DIR / "regime_summary.csv",
         TABLES_DIR / "episode_summary.csv",
+        TABLES_DIR / "qt_comparison_summary.csv",
         TABLES_DIR / "quarterly_descriptive.csv",
         TABLES_DIR / "correlation_matrix.csv",
         # Publish artifacts
@@ -52,9 +53,19 @@ def main() -> None:
         SITE_DATA_DIR / "weekly_panel.json",
         SITE_DATA_DIR / "quarterly_panel.json",
         SITE_DATA_DIR / "episode_registry.json",
+        SITE_DATA_DIR / "qt_comparison_summary.json",
     ]
     report = [check_exists(path) for path in expected]
     all_ok = all(r["exists"] for r in report)
+    summary_ok = False
+    summary_path = PUBLISH_DIR / "summary.json"
+    if summary_path.exists():
+        summary = json.loads(summary_path.read_text())
+        hashes = summary.get("artifact_hashes", [])
+        data_files = summary.get("data_files", [])
+        summary_ok = bool(summary.get("generated_at_utc")) and len(hashes) == len(data_files) and len(data_files) > 0
+    report.append({"path": "data/publish/summary.json metadata", "exists": summary_ok, "size_bytes": 0})
+    all_ok = all_ok and summary_ok
     print(json.dumps(report, indent=2))
     if not all_ok:
         missing = [r["path"] for r in report if not r["exists"]]

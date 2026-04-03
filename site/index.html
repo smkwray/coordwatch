@@ -21,6 +21,7 @@
       <li><a href="#buffer">Buffer</a></li>
       <li><a href="#regimes">Regimes</a></li>
       <li><a href="#econometrics">Econometrics</a></li>
+      <li><a href="#notes">Notes</a></li>
     </ul>
   </nav>
   <div class="header-controls">
@@ -30,8 +31,8 @@
 </header>
 
 <section class="hero">
-  <h1>Does Treasury debt management offset or amplify the effects of Fed QT?</h1>
-  <p class="hero-sub">Under an ample-reserves regime, the effective monetary stance depends jointly on Fed balance-sheet runoff, Treasury issuance composition, and private intermediation capacity. This project follows the balance sheets.</p>
+  <h1>How do Fed runoff, Treasury debt management, and liquidity conditions combine under ample reserves?</h1>
+  <p class="hero-sub">Under an ample-reserves regime, monetary conditions depend jointly on Fed balance-sheet runoff, Treasury issuance composition, TGA management, ON RRP drainage, and private intermediation capacity. This project follows the balance sheets.</p>
   <div class="stats-row">
     <div class="stat-chip">
       <span class="stat-value" id="stat-soma">&mdash;</span>
@@ -86,8 +87,8 @@
         <canvas id="dealerChart"></canvas>
       </div>
     </div>
-    <div class="insight-box">
-      <strong>During QT2</strong>, the correlation between SOMA decline and dealer inventory buildup is <strong>r = &minus;0.89</strong>. Dealers absorb what the Fed sheds.
+    <div class="insight-box" id="dealerInsight">
+      <p class="loading">Loading insight&hellip;</p>
     </div>
   </section>
 
@@ -104,26 +105,26 @@
         <canvas id="repoChart"></canvas>
       </div>
     </div>
-    <div class="insight-box">
-      <strong>During QT2</strong>, repo spreads correlate <strong>r = 0.83</strong> with dealer inventories and <strong>r = &minus;0.80</strong> with system liquidity. As the buffer drains, funding costs rise.
+    <div class="insight-box" id="repoInsight">
+      <p class="loading">Loading insight&hellip;</p>
     </div>
   </section>
 
-  <!-- ========== Treasury's Issuance Response ========== -->
+  <!-- ========== Treasury Debt Management ========== -->
   <section class="section" id="response">
     <div class="section-header">
-      <h2>Treasury&rsquo;s Issuance Response</h2>
+      <h2>Treasury Debt Management</h2>
       <span class="section-tag">Duration</span>
     </div>
-    <p>Net private duration supply measures how much duration the private sector must absorb: coupon issuance + SOMA runoff &minus; buybacks. When Treasury launched its buyback program in May 2024, it began actively removing duration from the market.</p>
+    <p>Net private duration supply tracks how much duration the private sector must absorb: coupon issuance + SOMA runoff &minus; buybacks. Treasury&rsquo;s issuance mix and buyback operations can change that burden even when the overall deficit is unchanged.</p>
     <div class="chart-single">
       <div class="chart-container">
         <p class="loading">Loading quarterly data&hellip;</p>
         <canvas id="netDurationChart"></canvas>
       </div>
     </div>
-    <div class="insight-box">
-      By <strong>2025Q2</strong>, net private duration supply turned negative &mdash; buybacks were removing more duration than new issuance and SOMA runoff were adding. The green bars show quarters where Treasury was net-removing duration from private markets.
+    <div class="insight-box" id="durationInsight">
+      <p class="loading">Loading insight&hellip;</p>
     </div>
   </section>
 
@@ -144,8 +145,8 @@
         <canvas id="tgaChart"></canvas>
       </div>
     </div>
-    <div class="insight-box">
-      <strong>TGA-Reserves pass-through:</strong> When Treasury builds its cash balance, reserves drain mechanically (QT2 correlation: <strong>r = &minus;0.56</strong>). This means Treasury&rsquo;s cash management has immediate implications for bank reserve conditions.
+    <div class="insight-box" id="bufferInsight">
+      <p class="loading">Loading insight&hellip;</p>
     </div>
   </section>
 
@@ -158,6 +159,7 @@
     <p>How do key variables compare across different Fed balance-sheet regimes and specific episodes?</p>
 
     <div id="regimeTable"><p class="loading">Loading regime data&hellip;</p></div>
+    <div id="qtCompareTable"><p class="loading">Loading QT comparison data&hellip;</p></div>
     <div id="episodeTable"><p class="loading">Loading episode data&hellip;</p></div>
     <div id="corrTable"><p class="loading">Loading correlation data&hellip;</p></div>
   </section>
@@ -168,13 +170,13 @@
       <h2>Supporting Econometrics</h2>
       <span class="section-tag">Supplementary</span>
     </div>
-    <p>The descriptive evidence above stands on its own. These regressions corroborate the institutional story.</p>
+    <p>The descriptive evidence above stands on its own. These regressions are supplementary checks on the balance-sheet story.</p>
 
     <div class="collapsible">
       <div class="collapsible-header">Reaction Function</div>
       <div class="collapsible-body">
         <div style="padding:16px">
-          <p style="margin-bottom:12px;color:var(--c-text-muted);font-size:0.9rem">Does Treasury&rsquo;s issuance-mix shock respond to Fed balance-sheet pressure? OLS with HC3 robust standard errors. Dependent variable: mix_shock_dv01.</p>
+          <p style="margin-bottom:12px;color:var(--c-text-muted);font-size:0.9rem">How does Treasury&rsquo;s issuance mix move alongside Fed balance-sheet pressure? OLS with HC3 robust standard errors. Dependent variable: mix_shock_dv01.</p>
           <div id="reactionTable"><p class="loading">Loading&hellip;</p></div>
         </div>
       </div>
@@ -192,10 +194,22 @@
     </div>
   </section>
 
+  <section class="section" id="notes">
+    <div class="section-header">
+      <h2>Measurement Notes</h2>
+      <span class="section-tag">Methods</span>
+    </div>
+    <p>These notes summarize the main construction choices, caveats, and reproducibility details behind the public bundle.</p>
+    <div class="notes-grid">
+      <div id="measurementNotes" class="card"><p class="loading">Loading notes&hellip;</p></div>
+      <div id="reproNotes" class="card"><p class="loading">Loading artifact metadata&hellip;</p></div>
+    </div>
+  </section>
+
 </main>
 
 <footer class="site-footer">
-  <p>CoordWatch &mdash; Measuring Fed-Treasury operational interdependence under ample reserves</p>
+  <p>CoordWatch &mdash; Tracking balance-sheet interactions under ample reserves</p>
   <p>Built with free public data from FRED, NY Fed, and Treasury.</p>
 </footer>
 

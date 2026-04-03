@@ -7,11 +7,14 @@ import numpy as np
 import pandas as pd
 
 from coordwatch.construct.liquidity import add_liquidity_state, add_repo_spreads, compute_qt_runoff_proxy
+from coordwatch.construct.refunding import attach_quarterly_liquidity_state
 from coordwatch.io import write_csv, write_parquet
 from coordwatch.logging_utils import get_logger
 from coordwatch.paths import PROCESSED_DIR, RAW_DIR, ensure_repo_dirs
+from coordwatch.utils.soma import estimate_runoff_duration_equivalent, load_soma_holdings_frame, prefetch_soma_holdings
 
 LOGGER = get_logger(__name__)
+SOMA_RELIABILITY_START = pd.Timestamp("2003-01-01")
 
 
 def _load_demo_weekly() -> pd.DataFrame:
@@ -124,56 +127,51 @@ def _load_primary_dealer_raw() -> pd.DataFrame:
     return pd.DataFrame()
 
 
-def build_weekly_master_panel(refunding_panel: pd.DataFrame, prefer_real: bool = True, output_dir: Path | None = None) -> pd.DataFrame:
-    ensure_repo_dirs()
-    out_dir = output_dir or PROCESSED_DIR
-    # Prefer real FRED data over demo
-    fred = _load_fred_raw() if prefer_real else pd.DataFrame()
-    if not fred.empty:
-        pd_raw = _load_primary_dealer_raw()
-        weekly = fred.copy()
-        if not pd_raw.empty:
-            rename_map = {
-                "PDPOSGST-TOT": "dealer_inventory_bn",
-                "PDSORA-UTSETTOT": "repo_agreements_tsy_bn",
-                "PDSIRRA-UTSETTOT": "reverse_repo_agreements_tsy_bn",
-            }
-            pd_raw = pd_raw.rename(columns=rename_map)
-            weekly = weekly.merge(pd_raw, left_on="week", right_on="date", how="left")
-            weekly = weekly.drop(columns=[c for c in ["date"] if c in weekly.columns])
-        source = "raw"
+def _build_raw_daily_panel() -> pd.DataFrame:
+    fred = _load_fred_raw()
+    if fred.empty:
+        return pd.DataFrame()
 
-        if "system_liquidity_bn" not in weekly.columns and {"reserves_bn", "on_rrp_bn"}.issubset(weekly.columns):
-            weekly["system_liquidity_bn"] = weekly["reserves_bn"] + weekly["on_rrp_bn"]
-        weekly = add_liquidity_state(weekly)
-        weekly = add_repo_spreads(weekly)
-        if "qt_runoff_dv01" not in weekly.columns and "soma_treasuries_bn" in weekly.columns:
-            weekly["qt_runoff_dv01"] = compute_qt_runoff_proxy(weekly["soma_treasuries_bn"])
-        if "dealer_inventory_bn" not in weekly.columns:
-            weekly["dealer_inventory_bn"] = np.nan
-    else:
-        demo = _load_demo_weekly()
-        if not demo.empty:
-            weekly = demo.copy()
-            source = "demo"
-        else:
-            raise FileNotFoundError("No weekly raw inputs found. Run demo seed or download FRED/NY Fed data.")
+    daily = fred.copy()
+    pd_raw = _load_primary_dealer_raw()
+    if not pd_raw.empty:
+        rename_map = {
+            "PDPOSGST-TOT": "dealer_inventory_bn",
+            "PDSORA-UTSETTOT": "repo_agreements_tsy_bn",
+            "PDSIRRA-UTSETTOT": "reverse_repo_agreements_tsy_bn",
+        }
+        pd_raw = pd_raw.rename(columns=rename_map)
+        daily = daily.merge(pd_raw, left_on="week", right_on="date", how="left")
+        daily = daily.drop(columns=[c for c in ["date"] if c in daily.columns])
 
-        if "system_liquidity_bn" not in weekly.columns and {"reserves_bn", "on_rrp_bn"}.issubset(weekly.columns):
-            weekly["system_liquidity_bn"] = weekly["reserves_bn"] + weekly["on_rrp_bn"]
-        weekly = add_liquidity_state(weekly)
-        weekly = add_repo_spreads(weekly)
-        if "qt_runoff_dv01" not in weekly.columns and "soma_treasuries_bn" in weekly.columns:
-            weekly["qt_runoff_dv01"] = compute_qt_runoff_proxy(weekly["soma_treasuries_bn"])
-        if "dealer_inventory_bn" not in weekly.columns:
-            weekly["dealer_inventory_bn"] = np.nan
-        weekly["dealer_inventory_lag1"] = weekly["dealer_inventory_bn"].shift(1)
-        weekly["repo_spread_lag1"] = weekly.get("repo_spread_bp", pd.Series(index=weekly.index, dtype=float)).shift(1)
-        weekly["tga_change_bn"] = weekly.get("tga_bn", pd.Series(index=weekly.index, dtype=float)).diff().fillna(0)
-        weekly["quarter_end_flag"] = weekly["week"].dt.is_quarter_end.astype(int)
+    if "system_liquidity_bn" not in daily.columns and {"reserves_bn", "on_rrp_bn"}.issubset(daily.columns):
+        daily["system_liquidity_bn"] = daily["reserves_bn"] + daily["on_rrp_bn"]
+    daily = add_repo_spreads(daily)
+    daily["calendar_quarter"] = daily["week"].dt.to_period("Q").astype(str)
+    daily["input_source"] = "raw"
+    return daily.sort_values("week").reset_index(drop=True)
 
-    weekly["week"] = pd.to_datetime(weekly["week"], errors="coerce")
-    weekly = weekly.sort_values("week").reset_index(drop=True)
+
+def _derive_true_weekly_panel(daily: pd.DataFrame) -> pd.DataFrame:
+    if daily.empty:
+        return daily
+
+    daily = daily.copy().sort_values("week").drop_duplicates(subset=["week"], keep="last")
+    calendar = pd.DataFrame({
+        "week": pd.date_range(daily["week"].min().normalize(), daily["week"].max().normalize(), freq="D"),
+    })
+    full = calendar.merge(daily, on="week", how="left").sort_values("week").reset_index(drop=True)
+    fill_cols = [c for c in full.columns if c != "week"]
+    full[fill_cols] = full[fill_cols].ffill()
+    weekly = full[full["week"].dt.weekday == 2].copy().reset_index(drop=True)
+    weekly["calendar_quarter"] = weekly["week"].dt.to_period("Q").astype(str)
+    return weekly
+
+
+def _attach_quarterly_shocks(weekly: pd.DataFrame, refunding_panel: pd.DataFrame) -> pd.DataFrame:
+    if weekly.empty:
+        return weekly
+
     refunding_panel = refunding_panel.copy().sort_values("refunding_date")
     refunding_panel["refunding_date"] = pd.to_datetime(refunding_panel["refunding_date"], errors="coerce")
     attach_cols = [
@@ -188,32 +186,122 @@ def build_weekly_master_panel(refunding_panel: pd.DataFrame, prefer_real: bool =
         "clean_sample_flag",
     ]
     attach = refunding_panel[attach_cols].copy()
-    weekly = pd.merge_asof(
-        weekly,
+    out = pd.merge_asof(
+        weekly.sort_values("week"),
         attach,
         left_on="week",
         right_on="refunding_date",
         direction="backward",
         suffixes=("", "_attach"),
     )
-    for col in [
-        "coupon_dv01_shock",
-        "bill_dv01_offset",
-        "mix_shock_dv01",
-        "buyback_offset_dv01",
-        "expected_soma_redemptions_dv01",
-        "classification_prior",
-        "clean_sample_flag",
-    ]:
-        attach_col = f"{col}_attach"
-        if col not in weekly.columns and attach_col in weekly.columns:
-            weekly[col] = weekly[attach_col]
-        elif attach_col in weekly.columns:
-            weekly[col] = weekly[col].combine_first(weekly[attach_col])
-            weekly = weekly.drop(columns=[attach_col])
-    weekly["quarter"] = weekly["week"].dt.to_period("Q").astype(str)
-    if "qt_runoff_dv01" not in weekly.columns:
-        weekly["qt_runoff_dv01"] = 0.0
+    out["quarter"] = out["quarter"].fillna(out["calendar_quarter"])
+    return out
+
+
+def _allocate_weekly_runoff_dv01(weekly: pd.DataFrame) -> pd.Series:
+    if "expected_soma_redemptions_dv01" not in weekly.columns:
+        return pd.Series(0.0, index=weekly.index)
+    obs_per_quarter = weekly.groupby("quarter")["week"].transform("count").replace(0, np.nan)
+    runoff = pd.to_numeric(weekly["expected_soma_redemptions_dv01"], errors="coerce").fillna(0) / obs_per_quarter
+    return runoff.fillna(0).round(2)
+
+
+def _compute_holdings_based_weekly_runoff(weekly: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
+    if weekly.empty or "week" not in weekly.columns:
+        return pd.Series(0.0, index=weekly.index), pd.Series("quarterly_allocation", index=weekly.index)
+
+    weekly_dates = (
+        weekly.loc[weekly["week"].notna() & (weekly["week"] >= SOMA_RELIABILITY_START), "week"]
+        .drop_duplicates()
+        .sort_values()
+    )
+    if not weekly_dates.empty:
+        stats = prefetch_soma_holdings(weekly_dates, max_workers=4)
+        LOGGER.info(
+            "SOMA holdings prefetch requested=%s downloaded=%s failed=%s",
+            stats["requested"],
+            stats["downloaded"],
+            stats["failed"],
+        )
+
+    fallback = _allocate_weekly_runoff_dv01(weekly)
+    values = pd.Series(np.nan, index=weekly.index, dtype=float)
+    sources = pd.Series("quarterly_allocation", index=weekly.index, dtype=object)
+    curve_cols = ["DGS2", "DGS5", "DGS10", "DGS20", "DGS30"]
+    weekly_sorted = weekly.sort_values("week").copy()
+    last_valid_week = pd.NaT
+    last_valid_holdings = pd.DataFrame()
+    for idx, row in weekly_sorted.iterrows():
+        week = row.get("week", pd.NaT)
+        if pd.isna(week):
+            values.loc[idx] = 0.0
+            continue
+        if week < SOMA_RELIABILITY_START:
+            values.loc[idx] = round(float(fallback.loc[idx]), 3)
+            continue
+        try:
+            current_holdings = load_soma_holdings_frame(week)
+            if current_holdings.empty or "cusip" not in current_holdings.columns or current_holdings["cusip"].dropna().empty:
+                values.loc[idx] = 0.0
+                sources.loc[idx] = "holdings_gap"
+                continue
+            if last_valid_holdings.empty or pd.isna(last_valid_week):
+                values.loc[idx] = 0.0
+                sources.loc[idx] = "holdings_detail"
+                last_valid_holdings = current_holdings
+                last_valid_week = week
+                continue
+            curve = {col: row.get(col, np.nan) for col in curve_cols}
+            runoff = estimate_runoff_duration_equivalent(last_valid_holdings, current_holdings, curve, last_valid_week)
+            values.loc[idx] = round(runoff, 3)
+            sources.loc[idx] = "holdings_detail"
+            last_valid_holdings = current_holdings
+            last_valid_week = week
+            continue
+        except Exception as exc:  # noqa: BLE001
+            LOGGER.warning("Falling back to quarterly runoff allocation for %s: %s", week.date(), exc)
+        values.loc[idx] = round(float(fallback.loc[idx]), 3)
+    return values.fillna(0.0), sources
+
+
+def build_weekly_master_panel(refunding_panel: pd.DataFrame, prefer_real: bool = True, output_dir: Path | None = None) -> pd.DataFrame:
+    ensure_repo_dirs()
+    out_dir = output_dir or PROCESSED_DIR
+    daily = _build_raw_daily_panel() if prefer_real else pd.DataFrame()
+    if not daily.empty:
+        weekly = _derive_true_weekly_panel(daily)
+        source = "raw"
+        write_csv(daily, out_dir / "master_daily_panel.csv")
+        write_parquet(daily, out_dir / "master_daily_panel.parquet")
+    else:
+        demo = _load_demo_weekly()
+        if not demo.empty:
+            weekly = demo.copy()
+            source = "demo"
+        else:
+            raise FileNotFoundError("No weekly raw inputs found. Run demo seed or download FRED/NY Fed data.")
+
+    weekly["week"] = pd.to_datetime(weekly["week"], errors="coerce")
+    weekly = weekly.sort_values("week").reset_index(drop=True)
+    weekly["calendar_quarter"] = weekly.get("calendar_quarter", weekly["week"].dt.to_period("Q").astype(str))
+    if "system_liquidity_bn" not in weekly.columns and {"reserves_bn", "on_rrp_bn"}.issubset(weekly.columns):
+        weekly["system_liquidity_bn"] = weekly["reserves_bn"] + weekly["on_rrp_bn"]
+    if "repo_spread_bp" not in weekly.columns:
+        weekly = add_repo_spreads(weekly)
+    if "dealer_inventory_bn" not in weekly.columns:
+        weekly["dealer_inventory_bn"] = np.nan
+    weekly = _attach_quarterly_shocks(weekly, refunding_panel)
+    weekly["qt_runoff_proxy_bn"] = compute_qt_runoff_proxy(weekly["soma_treasuries_bn"]) if "soma_treasuries_bn" in weekly.columns else 0.0
+    if source == "raw":
+        runoff_values, runoff_source = _compute_holdings_based_weekly_runoff(weekly)
+        weekly["qt_runoff_dv01"] = runoff_values.round(3)
+        weekly["qt_runoff_source"] = runoff_source
+    else:
+        weekly["qt_runoff_dv01"] = weekly.get("qt_runoff_dv01", _allocate_weekly_runoff_dv01(weekly)).fillna(0).round(3)
+        weekly["qt_runoff_source"] = weekly.get(
+            "qt_runoff_source",
+            pd.Series("demo_seed", index=weekly.index, dtype=object),
+        )
     weekly["coupon_dv01_shock"] = weekly.get("coupon_dv01_shock", pd.Series(index=weekly.index, dtype=float)).fillna(0)
     weekly["bill_dv01_offset"] = weekly.get("bill_dv01_offset", pd.Series(index=weekly.index, dtype=float)).fillna(0)
     weekly["mix_shock_dv01"] = weekly.get("mix_shock_dv01", pd.Series(index=weekly.index, dtype=float)).fillna(0)
@@ -233,9 +321,14 @@ def build_weekly_master_panel(refunding_panel: pd.DataFrame, prefer_real: bool =
     weekly["fed_pressure_x_low_liquidity"] = (weekly["fed_pressure_dv01"] * weekly["low_liquidity_prev"]).round(2)
     weekly["dealer_inventory_lag1"] = weekly["dealer_inventory_bn"].shift(1)
     weekly["repo_spread_lag1"] = weekly["repo_spread_bp"].shift(1)
-    weekly["tga_change_bn"] = weekly.get("tga_change_bn", pd.Series(index=weekly.index, dtype=float)).fillna(0)
-    weekly["quarter_end_flag"] = weekly.get("quarter_end_flag", pd.Series(index=weekly.index, dtype=float)).fillna(0).astype(int)
+    weekly["tga_change_bn"] = weekly.get("tga_bn", pd.Series(index=weekly.index, dtype=float)).diff().fillna(0)
+    quarter_end = weekly.groupby("calendar_quarter")["week"].transform("max") == weekly["week"]
+    weekly["quarter_end_flag"] = quarter_end.astype(int)
     weekly["input_source"] = source
+
+    refunding_enriched = attach_quarterly_liquidity_state(refunding_panel, weekly)
+    write_csv(refunding_enriched, out_dir / "refunding_panel.csv")
+    write_parquet(refunding_enriched, out_dir / "refunding_panel.parquet")
 
     write_csv(weekly, out_dir / "master_weekly_panel.csv")
     write_parquet(weekly, out_dir / "master_weekly_panel.parquet")

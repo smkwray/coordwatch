@@ -78,6 +78,50 @@ def compute_coupon_dv01_from_deltas(df: pd.DataFrame) -> pd.Series:
     return total
 
 
+def attach_quarterly_liquidity_state(
+    panel: pd.DataFrame,
+    weekly: pd.DataFrame,
+    quantile: float = 0.35,
+) -> pd.DataFrame:
+    """Derive the quarterly liquidity state from the true weekly panel."""
+    out = panel.copy()
+    if weekly.empty or "system_liquidity_bn" not in weekly.columns:
+        return out
+
+    weekly_work = weekly.copy()
+    if "calendar_quarter" in weekly_work.columns:
+        weekly_work["calendar_quarter"] = weekly_work["calendar_quarter"].astype(str)
+    else:
+        weekly_work["calendar_quarter"] = pd.to_datetime(weekly_work["week"], errors="coerce").dt.to_period("Q").astype(str)
+
+    q_liq = (
+        weekly_work.groupby("calendar_quarter", dropna=True)
+        .agg(system_liquidity_q_bn=("system_liquidity_bn", "mean"))
+        .reset_index()
+        .rename(columns={"calendar_quarter": "quarter"})
+    )
+    q_liq["system_liquidity_q_bn"] = pd.to_numeric(q_liq["system_liquidity_q_bn"], errors="coerce")
+    valid = q_liq["system_liquidity_q_bn"].dropna()
+    if valid.empty:
+        return out
+
+    threshold = float(valid.quantile(quantile))
+    q_liq["low_liquidity"] = (q_liq["system_liquidity_q_bn"] <= threshold).astype(int)
+    q_liq = q_liq.sort_values("quarter").reset_index(drop=True)
+    q_liq["low_liquidity_prev"] = q_liq["low_liquidity"].shift(1).fillna(0).astype(int)
+
+    drop_cols = [c for c in ["system_liquidity_q_bn", "low_liquidity", "low_liquidity_prev", "expected_soma_redemptions_x_low_liquidity"] if c in out.columns]
+    if drop_cols:
+        out = out.drop(columns=drop_cols)
+    out = out.merge(q_liq[["quarter", "system_liquidity_q_bn", "low_liquidity_prev"]], on="quarter", how="left")
+    out["low_liquidity_prev"] = pd.to_numeric(out["low_liquidity_prev"], errors="coerce").fillna(0).astype(int)
+    out["expected_soma_redemptions_x_low_liquidity"] = (
+        pd.to_numeric(out["expected_soma_redemptions_dv01"], errors="coerce").fillna(0)
+        * out["low_liquidity_prev"]
+    ).round(2)
+    return out
+
+
 def _prep_real_refunding_base(extracted: pd.DataFrame, manual: pd.DataFrame) -> pd.DataFrame:
     # Manual overrides are the authoritative numeric layer.
     if manual.empty and extracted.empty:

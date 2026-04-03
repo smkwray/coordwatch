@@ -13,6 +13,7 @@ docs/
 
 # Environment
 .env
+.nojekyll
 
 # Plans
 *.plan.md

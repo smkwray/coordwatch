@@ -56,16 +56,18 @@
       fetchJ('weekly_panel'),
       fetchJ('quarterly_descriptive'),
       fetchJ('regime_summary'),
+      fetchJ('qt_comparison_summary'),
       fetchJ('episode_summary'),
       fetchJ('correlation_matrix'),
       fetchJ('reaction_function_main'),
       fetchJ('main_lp_dealer'),
-      fetchJ('main_lp_repo')
+      fetchJ('main_lp_repo'),
+      fetchJ('summary')
     ]).then(function (arr) {
       return {
         weekly: arr[0], qDesc: arr[1], regime: arr[2],
-        episodes: arr[3], corr: arr[4], reaction: arr[5],
-        lpDealer: arr[6], lpRepo: arr[7]
+        qtCompare: arr[3], episodes: arr[4], corr: arr[5], reaction: arr[6],
+        lpDealer: arr[7], lpRepo: arr[8], summary: arr[9]
       };
     });
   }
@@ -83,6 +85,12 @@
     var n = Number(v);
     if (Math.abs(n) >= 1000) return '$' + (n / 1000).toFixed(1) + 'T';
     return '$' + Math.round(n) + 'B';
+  }
+
+  function fmtCorr(v) {
+    if (v == null || isNaN(v)) return '\u2014';
+    var n = Number(v);
+    return (n < 0 ? '&minus;' : '') + Math.abs(n).toFixed(2);
   }
 
   function el(id) { return document.getElementById(id); }
@@ -392,6 +400,35 @@
     if (target) target.innerHTML = '<h3>Episode Comparison</h3>' + htmlTable(data, cols, fmters, colLabels);
   }
 
+  function buildQtCompareTable(data) {
+    var target = el('qtCompareTable');
+    if (!target || !data || !data.length) return;
+    var cols = [
+      'regime', 'comparison_weeks', 'soma_change_bn', 'on_rrp_change_bn',
+      'dealer_inventory_change_bn', 'repo_spread_bp_mean', 'qt_runoff_dv01_cum'
+    ];
+    var colLabels = {
+      regime: 'Window',
+      comparison_weeks: 'Weeks',
+      soma_change_bn: 'SOMA \u0394',
+      on_rrp_change_bn: 'ON RRP \u0394',
+      dealer_inventory_change_bn: 'Dealers \u0394',
+      repo_spread_bp_mean: 'Avg Spread',
+      qt_runoff_dv01_cum: 'Cum Runoff'
+    };
+    var fmters = {
+      soma_change_bn: fmtBn,
+      on_rrp_change_bn: fmtBn,
+      dealer_inventory_change_bn: fmtBn,
+      repo_spread_bp_mean: function (v) { return fmt(v, 1) + ' bp'; },
+      qt_runoff_dv01_cum: function (v) { return fmt(v, 1); }
+    };
+    target.innerHTML =
+      '<h3>QT1 vs QT2 (First 52 Weeks)</h3>' +
+      '<p style="margin:0 0 12px;color:var(--c-text-muted);font-size:0.9rem">Each row uses the first 52 weekly observations of that runoff episode so the balance-sheet adjustments are compared on a normalized clock.</p>' +
+      htmlTable(data, cols, fmters, colLabels);
+  }
+
   function buildCorrTable(data) {
     var target = el('corrTable');
     if (!target || !data || !data.length) return;
@@ -429,13 +466,94 @@
   function buildLpTable(data, targetId, title) {
     var target = el(targetId);
     if (!target || !data || !data.length) return;
+    var rows = data.map(function (row) {
+      var out = Object.assign({}, row);
+      out.ci_lo = row.ci_lo != null ? row.ci_lo : row.ci_lower_95;
+      out.ci_hi = row.ci_hi != null ? row.ci_hi : row.ci_upper_95;
+      return out;
+    });
     var cols = ['horizon', 'term', 'coef', 'ci_lo', 'ci_hi'];
     var fmters = {
       coef: function (v) { return Number(v).toFixed(4); },
       ci_lo: function (v) { return Number(v).toFixed(4); },
       ci_hi: function (v) { return Number(v).toFixed(4); }
     };
-    target.innerHTML = '<h3>' + title + '</h3>' + htmlTable(data, cols, fmters);
+    target.innerHTML = '<h3>' + title + '</h3>' + htmlTable(rows, cols, fmters);
+  }
+
+  function buildMeasurementNotes(summary) {
+    var notesTarget = el('measurementNotes');
+    var reproTarget = el('reproNotes');
+    if (!summary) return;
+
+    if (notesTarget) {
+      var notes = summary.measurement_notes || [];
+      var notesHtml = notes.map(function (note) {
+        return '<div class="note-item"><strong>' + note.title + '</strong><p>' + note.detail + '</p></div>';
+      }).join('');
+      notesTarget.innerHTML = '<h3 class="note-card-title">Construction And Caveats</h3><div class="note-list">' + notesHtml + '</div>';
+    }
+
+    if (reproTarget) {
+      var hashes = (summary.artifact_hashes || []).slice(0, 6);
+      var runoffCounts = summary.runoff_source_counts || {};
+      var hashRows = hashes.map(function (row) {
+        return '<tr><td>' + row.file + '</td><td>' + row.sha256.slice(0, 12) + '</td></tr>';
+      }).join('');
+      var runoffRows = Object.keys(runoffCounts).map(function (key) {
+        return '<tr><td>' + key.replace(/_/g, ' ') + '</td><td>' + runoffCounts[key] + '</td></tr>';
+      }).join('');
+      var generated = summary.generated_at_utc || '\u2014';
+      reproTarget.innerHTML =
+        '<h3 class="note-card-title">Build Metadata</h3>' +
+        '<div class="meta-block"><strong>Generated</strong><p>' + generated + '</p></div>' +
+        '<div class="meta-block"><strong>Public window</strong><p>' + (summary.site_window_start || '\u2014') + ' onward, ' + (summary.weekly_frequency || '\u2014') + ' sampling</p></div>' +
+        '<div class="meta-block"><strong>Runoff coverage</strong><table class="artifact-table"><tbody>' + runoffRows + '</tbody></table></div>' +
+        '<div class="meta-block"><strong>Artifact hashes</strong><table class="artifact-table"><tbody>' + hashRows + '</tbody></table></div>';
+    }
+  }
+
+  function corrLookup(matrix, rowKey, colKey) {
+    if (!matrix || !matrix.length) return null;
+    var cols = Object.keys(matrix[0]);
+    var rowIndex = cols.indexOf(rowKey);
+    if (rowIndex === -1) return null;
+    return matrix[rowIndex][colKey];
+  }
+
+  function buildInsights(weekly, qDesc, corr) {
+    var dealerTarget = el('dealerInsight');
+    var repoTarget = el('repoInsight');
+    var durationTarget = el('durationInsight');
+    var bufferTarget = el('bufferInsight');
+
+    var somaDealerCorr = corrLookup(corr, 'soma_treasuries_bn', 'dealer_inventory_bn');
+    if (dealerTarget) {
+      dealerTarget.innerHTML = '<strong>During QT2</strong>, the correlation between SOMA holdings and dealer inventories is <strong>r = ' + fmtCorr(somaDealerCorr) + '</strong>. As SOMA holdings fall, dealer inventories tend to rise.';
+    }
+
+    var repoDealerCorr = corrLookup(corr, 'repo_spread_bp', 'dealer_inventory_bn');
+    var repoLiquidityCorr = corrLookup(corr, 'repo_spread_bp', 'system_liquidity_bn');
+    if (repoTarget) {
+      repoTarget.innerHTML = '<strong>During QT2</strong>, repo spreads correlate <strong>r = ' + fmtCorr(repoDealerCorr) + '</strong> with dealer inventories and <strong>r = ' + fmtCorr(repoLiquidityCorr) + '</strong> with system liquidity. Tighter balance-sheet capacity lines up with wider funding spreads.';
+    }
+
+    if (durationTarget && qDesc && qDesc.length) {
+      var quarters = qDesc.slice().sort(function (a, b) { return String(a.quarter).localeCompare(String(b.quarter)); });
+      var negative = quarters.filter(function (row) { return row.net_private_duration_dv01 != null && Number(row.net_private_duration_dv01) < 0; });
+      if (negative.length) {
+        var firstNeg = negative[0];
+        durationTarget.innerHTML = 'Net private duration supply first turns negative in <strong>' + firstNeg.quarter + '</strong> at <strong>' + fmt(Number(firstNeg.net_private_duration_dv01), 0) + ' DV01</strong>. In those quarters, buybacks and issuance choices reduced the private sector&rsquo;s net duration burden.';
+      } else {
+        var latest = quarters[quarters.length - 1];
+        durationTarget.innerHTML = 'Net private duration supply remains positive through <strong>' + latest.quarter + '</strong>. The published sample still shows a positive private-sector duration burden overall.';
+      }
+    }
+
+    var tgaReservesCorr = corrLookup(corr, 'tga_bn', 'reserves_bn');
+    if (bufferTarget) {
+      bufferTarget.innerHTML = '<strong>TGA-reserves relationship:</strong> During QT2, the simple correlation between TGA and reserves is <strong>r = ' + fmtCorr(tgaReservesCorr) + '</strong>. TGA swings matter for reserve conditions, but the pass-through is not one-for-one in this sample.';
+    }
   }
 
   /* ================================================================
@@ -499,11 +617,14 @@
     buildTga(d.weekly);
 
     buildRegimeTable(d.regime);
+    buildQtCompareTable(d.qtCompare);
     buildEpisodeTable(d.episodes);
     buildCorrTable(d.corr);
     buildReactionTable(d.reaction);
     buildLpTable(d.lpDealer, 'lpDealerTable', 'Local Projection: Dealer Inventory');
     buildLpTable(d.lpRepo, 'lpRepoTable', 'Local Projection: Repo Spread');
+    buildInsights(d.weekly, d.qDesc, d.corr);
+    buildMeasurementNotes(d.summary);
   }
 
   window.cwRebuildCharts = function () {

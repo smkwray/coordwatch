@@ -4,6 +4,7 @@
 Produces:
   - outputs/tables/regime_summary.csv: weekly panel averages by Fed regime
   - outputs/tables/episode_summary.csv: episode-level averages from expanded registry
+  - outputs/tables/qt_comparison_summary.csv: side-by-side QT1 vs QT2 comparison
   - outputs/tables/quarterly_descriptive.csv: quarterly panel with net private duration supply
   - outputs/tables/correlation_matrix.csv: key variable correlations
 """
@@ -151,6 +152,36 @@ def build_quarterly_descriptive(quarter: pd.DataFrame, weekly: pd.DataFrame) -> 
     return q[out_cols]
 
 
+def build_qt_comparison_summary(weekly: pd.DataFrame, comparison_weeks: int = 52) -> pd.DataFrame:
+    """Compare the first comparison_weeks of QT1 and QT2 on a normalized basis."""
+    specs = [
+        ("QT1", pd.Timestamp("2017-10-04"), pd.Timestamp("2019-07-31")),
+        ("QT2", pd.Timestamp("2022-06-01"), pd.Timestamp("2025-03-31")),
+    ]
+    rows = []
+    for label, start, end in specs:
+        sub = weekly[(weekly["week"] >= start) & (weekly["week"] <= end)].sort_values("week").head(comparison_weeks).copy()
+        if sub.empty:
+            continue
+        first = sub.iloc[0]
+        last = sub.iloc[-1]
+        rows.append({
+            "regime": label,
+            "comparison_weeks": len(sub),
+            "date_start": str(first["week"].date()),
+            "date_end": str(last["week"].date()),
+            "soma_change_bn": float(last["soma_treasuries_bn"] - first["soma_treasuries_bn"]) if "soma_treasuries_bn" in sub.columns else np.nan,
+            "reserves_change_bn": float(last["reserves_bn"] - first["reserves_bn"]) if "reserves_bn" in sub.columns else np.nan,
+            "on_rrp_change_bn": float(last["on_rrp_bn"] - first["on_rrp_bn"]) if "on_rrp_bn" in sub.columns else np.nan,
+            "dealer_inventory_change_bn": float(last["dealer_inventory_bn"] - first["dealer_inventory_bn"]) if "dealer_inventory_bn" in sub.columns else np.nan,
+            "repo_spread_bp_mean": float(sub["repo_spread_bp"].mean()) if "repo_spread_bp" in sub.columns else np.nan,
+            "repo_spread_bp_change": float(last["repo_spread_bp"] - first["repo_spread_bp"]) if "repo_spread_bp" in sub.columns else np.nan,
+            "qt_runoff_dv01_mean": float(sub["qt_runoff_dv01"].mean()) if "qt_runoff_dv01" in sub.columns else np.nan,
+            "qt_runoff_dv01_cum": float(sub["qt_runoff_dv01"].sum()) if "qt_runoff_dv01" in sub.columns else np.nan,
+        })
+    return pd.DataFrame(rows).round(2)
+
+
 def build_correlation_matrix(weekly: pd.DataFrame) -> pd.DataFrame:
     """Key variable correlations for the QT2 period (2022+)."""
     qt2 = weekly[weekly["week"] >= pd.Timestamp("2022-06-01")].copy()
@@ -177,6 +208,10 @@ def main() -> None:
     episodes = build_episode_summary(weekly)
     write_csv(episodes, TABLES_DIR / "episode_summary.csv")
     logger.info("Episode summary: %s episodes", len(episodes))
+
+    qt_compare = build_qt_comparison_summary(weekly)
+    write_csv(qt_compare, TABLES_DIR / "qt_comparison_summary.csv")
+    logger.info("QT comparison summary: %s rows", len(qt_compare))
 
     q_desc = build_quarterly_descriptive(quarter, weekly)
     write_csv(q_desc, TABLES_DIR / "quarterly_descriptive.csv")

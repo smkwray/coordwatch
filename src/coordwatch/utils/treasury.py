@@ -11,6 +11,13 @@ from bs4 import BeautifulSoup
 from coordwatch.utils.http import download_to_path, get_text
 from coordwatch.utils.text import clean_whitespace
 
+QUARTER_TO_END_MONTH = {
+    "Q1": "march",
+    "Q2": "june",
+    "Q3": "september",
+    "Q4": "december",
+}
+
 REFUNDING_KEYWORDS = [
     "quarterly refunding statement",
     "quarterly refunding",
@@ -100,11 +107,97 @@ def file_to_text(path: Path) -> str:
     return clean_whitespace(path.read_text(encoding="utf-8", errors="ignore"))
 
 
+def url_to_text(url: str) -> str:
+    html = get_text(url)
+    soup = BeautifulSoup(html, "lxml")
+    return clean_whitespace(soup.get_text(" ", strip=True))
+
+
+def quarter_end_month(quarter: str | None) -> str | None:
+    if not quarter or "Q" not in str(quarter):
+        return None
+    return QUARTER_TO_END_MONTH.get(str(quarter)[-2:].upper())
+
+
+def _parse_float_token(token: str) -> float:
+    return float(token.replace(",", ""))
+
+
+def extract_cash_balance_assumption(text: str, quarter: str | None = None) -> float | None:
+    cleaned = clean_whitespace(text or "")
+    if not cleaned:
+        return None
+
+    target_month = quarter_end_month(quarter)
+    number = r"([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)"
+
+    paired_patterns = [
+        re.compile(
+            rf"end[- ]of[- ](march|june|september|december)(?:\s+\d{{4}})?\s+and\s+end[- ]of[- ]"
+            rf"(march|june|september|december)(?:\s+\d{{4}})?\s+cash balances? of\s+\$?{number}\s*"
+            rf"(?:billion|bn)\s+and\s+\$?{number}\s*(?:billion|bn)",
+            flags=re.IGNORECASE,
+        ),
+        re.compile(
+            rf"cash balances? of\s+\$?{number}\s*(?:billion|bn)\s+and\s+\$?{number}\s*(?:billion|bn)"
+            rf"[^.{{}}]{{0,120}}end[- ]of[- ](march|june|september|december)(?:\s+\d{{4}})?[^.{{}}]{{0,80}}"
+            rf"end[- ]of[- ](march|june|september|december)(?:\s+\d{{4}})?",
+            flags=re.IGNORECASE,
+        ),
+    ]
+    for pattern in paired_patterns:
+        m = pattern.search(cleaned)
+        if not m:
+            continue
+        groups = list(m.groups())
+        if pattern is paired_patterns[0]:
+            month1, month2, value1, value2 = groups
+        else:
+            value1, value2, month1, month2 = groups
+        if target_month == month1.lower():
+            return _parse_float_token(value1)
+        if target_month == month2.lower():
+            return _parse_float_token(value2)
+
+    if target_month:
+        month_patterns = [
+            re.compile(
+                rf"end[- ]of[- ]{target_month}(?:\s+\d{{4}})?[^.{{}}]{{0,120}}cash balance(?:s)?(?: of| at| assumption of)?"
+                rf"[^$0-9]{{0,40}}\$?{number}\s*(?:billion|bn)",
+                flags=re.IGNORECASE,
+            ),
+            re.compile(
+                rf"cash balance(?:s)?(?: of| at| assumption of)?[^.{{}}]{{0,120}}end[- ]of[- ]{target_month}(?:\s+\d{{4}})?"
+                rf"[^$0-9]{{0,40}}\$?{number}\s*(?:billion|bn)",
+                flags=re.IGNORECASE,
+            ),
+            re.compile(
+                rf"end[- ]of[- ]{target_month}(?:\s+\d{{4}})?[^$0-9]{{0,40}}\$?{number}\s*(?:billion|bn)\s+cash balance",
+                flags=re.IGNORECASE,
+            ),
+        ]
+        for pattern in month_patterns:
+            m = pattern.search(cleaned)
+            if m:
+                return _parse_float_token(m.group(1))
+
+    generic_patterns = [
+        re.compile(rf"cash balance[^$0-9]{{0,160}}\$?{number}\s*(?:billion|bn)", flags=re.IGNORECASE),
+        re.compile(rf"cash balance of[^$0-9]{{0,160}}\$?{number}\s*(?:billion|bn)", flags=re.IGNORECASE),
+        re.compile(rf"assumes? an end[- ]of[- ]quarter cash balance of\s+\$?{number}\s*(?:billion|bn)", flags=re.IGNORECASE),
+    ]
+    for pattern in generic_patterns:
+        m = pattern.search(cleaned)
+        if m:
+            return _parse_float_token(m.group(1))
+    return None
+
+
 def extract_refunding_numeric_hints(text: str) -> dict[str, float | int | None]:
     lowered = (text or "").lower()
     values = {
         "privately_held_net_marketable_borrowing_bn": None,
-        "cash_balance_assumption_bn": None,
+        "cash_balance_assumption_bn": extract_cash_balance_assumption(text),
         "debt_limit_flag": int("debt limit" in lowered or "debt ceiling" in lowered),
         "soma_explicit_mention_flag": int(
             "soma" in lowered or "federal reserve" in lowered or "reinvestment" in lowered or "redemption" in lowered
@@ -116,10 +209,6 @@ def extract_refunding_numeric_hints(text: str) -> dict[str, float | int | None]:
         "privately_held_net_marketable_borrowing_bn": [
             r"privately held net marketable borrowing[^$]{0,120}\$\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)\s*(?:billion|bn)",
             r"net marketable borrowing[^$]{0,120}\$\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)\s*(?:billion|bn)",
-        ],
-        "cash_balance_assumption_bn": [
-            r"cash balance[^$]{0,80}\$\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)\s*(?:billion|bn)",
-            r"cash balance of[^$]{0,80}\$\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)\s*(?:billion|bn)",
         ],
     }
 

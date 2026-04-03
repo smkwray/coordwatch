@@ -21,12 +21,12 @@ logger = get_logger(__name__)
 
 def classify_alignment(expected_soma: float, mix_shock: float, debt_limit_flag: int) -> str:
     if debt_limit_flag == 1:
-        return "confounded_mechanical"
+        return "confounded_window"
     if expected_soma > 0 and mix_shock < 0:
-        return "offsetting_coordination"
+        return "offsetting_interaction"
     if expected_soma > 0 and mix_shock > 0:
-        return "amplifying_coordination"
-    return "neutral_independence"
+        return "amplifying_interaction"
+    return "neutral_window"
 
 
 def main() -> None:
