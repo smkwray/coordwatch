@@ -1,0 +1,16 @@
+{
+  "series": [
+    {
+      "seriesbreak": "PDPOSGST-TOT",
+      "description": "Net Treasury position excluding TIPS"
+    },
+    {
+      "seriesbreak": "PDSORA-UTSETTOT",
+      "description": "Repo agreements Treasuries ex-TIPS"
+    },
+    {
+      "seriesbreak": "PDSIRRA-UTSETTOT",
+      "description": "Reverse repo agreements Treasuries ex-TIPS"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+series_id,concept,frequency,source_family,role
+WSHOTSL,soma_treasuries_bn,weekly,H.4.1 via FRED,Fed Treasury holdings level
+WRESBAL,reserves_bn,weekly,H.4.1 via FRED,reserve balances
+WTREGEN,tga_bn,weekly,H.4.1 via FRED,Treasury General Account
+RRPONTSYD,on_rrp_bn,daily,NY Fed / FRED,ON RRP amount
+RRPONTSYAWARD,on_rrp_award_rate_bp,daily,NY Fed / FRED,ON RRP award rate
+TGCR,tgcr_bp,daily,NY Fed / FRED,tri-party GC rate
+IORB,iorb_bp,daily,FRED,interest on reserve balances
+DGS2,y2_bp,daily,H.15 via FRED,2y yield
+DGS5,y5_bp,daily,H.15 via FRED,5y yield
+DGS10,y10_bp,daily,H.15 via FRED,10y yield
+DGS20,y20_bp,daily,H.15 via FRED,20y yield
+DGS30,y30_bp,daily,H.15 via FRED,30y yield

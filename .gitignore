@@ -1,0 +1,70 @@
+# Internal working files
+do/
+
+# Browser automation artifacts
+.playwright-mcp/
+
+# Import scripts (not part of public pipeline)
+scripts/18_*.py
+scripts/19_*.py
+
+# Internal docs not for the repo
+docs/
+
+# Environment
+.env
+
+# Plans
+*.plan.md
+plan.md
+plans/
+
+# Python artifacts (defense in depth — env rules ban these too)
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+dist/
+build/
+
+# Virtualenvs (must never live in repo)
+.venv/
+venv/
+env/
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Data artifacts (downloaded / generated)
+data/raw/downloads/*
+!data/raw/downloads/.gitkeep
+data/raw/imports/*
+!data/raw/imports/.gitkeep
+data/interim/*
+!data/interim/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/publish/*
+!data/publish/.gitkeep
+
+# Output artifacts
+outputs/figures/*
+!outputs/figures/.gitkeep
+outputs/tables/*
+!outputs/tables/.gitkeep
+outputs/logs/*
+!outputs/logs/.gitkeep
+
+# Site generated content
+site/data/*
+!site/data/.gitkeep
+site/figures/*
+!site/figures/.gitkeep

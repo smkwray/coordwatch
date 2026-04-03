@@ -1,0 +1,38 @@
+treasury:
+  refunding_landing: https://home.treasury.gov/policy-issues/financing-the-government/quarterly-refunding
+  refunding_most_recent: https://home.treasury.gov/policy-issues/financing-the-government/quarterly-refunding/most-recent-quarterly-refunding-documents
+  refunding_archives: https://home.treasury.gov/policy-issues/financing-the-government/quarterly-refunding/quarterly-refunding-archives
+  refunding_process: https://home.treasury.gov/policy-issues/financing-the-government/quarterly-refunding/treasury-quarterly-refunding-process
+  investor_allotments: https://home.treasury.gov/data/investor-class-auction-allotments
+  buybacks_results: https://treasurydirect.gov/auctions/announcements-data-results/buy-backs/
+  buybacks_faq: https://www.treasurydirect.gov/help-center/faqs/buyback-faqs/
+  buybacks_rules: https://treasurydirect.gov/laws-and-regulations/buyback-rules/
+
+fed:
+  policy_normalization: https://www.federalreserve.gov/monetarypolicy/policy-normalization.htm
+  h41_release: https://www.federalreserve.gov/releases/h41/
+  h15_release: https://www.federalreserve.gov/releases/h15/
+  nyfed_perli_2026: https://www.newyorkfed.org/newsevents/speeches/2026/per260326
+
+nyfed:
+  primary_dealer_landing: https://www.newyorkfed.org/markets/counterparties/primary-dealers-statistics
+  primary_dealer_catalog_json: https://markets.newyorkfed.org/api/pd/list/timeseries.json
+  primary_dealer_history_template: https://markets.newyorkfed.org/api/pd/get/{keyid}.json
+  primary_dealer_latest_template: https://markets.newyorkfed.org/api/pd/latest/{seriesbreak}.json
+  primary_dealer_legacy_excel: https://www.newyorkfed.org/medialibrary/media/banking/reportingforms/primarystats/dealexcel.xls?la=en
+  term_premia_landing: https://www.newyorkfed.org/research/data_indicators/term-premia-tabs
+
+fred:
+  base_graph_csv: https://fred.stlouisfed.org/graph/fredgraph.csv?id={series_id}
+
+
+treasury_optional:
+  daily_treasury_statement: https://fiscaldata.treasury.gov/datasets/daily-treasury-statement/operating-cash-balance
+  debt_to_the_penny: https://fiscaldata.treasury.gov/datasets/debt-to-the-penny/debt-to-the-penny
+
+fed_optional:
+  h8_release: https://www.federalreserve.gov/releases/h8/
+  z1_release: https://www.federalreserve.gov/releases/z1/
+
+nyfed_optional:
+  sofr_landing: https://www.newyorkfed.org/markets/reference-rates/sofr

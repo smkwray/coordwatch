@@ -1,0 +1,4 @@
+keyid,description,role,status
+PDPOSGST-TOT,Total net Treasury dealer position excluding TIPS,headline dealer inventory outcome,confirmed from public catalog
+PDSORA-UTSETTOT,Repurchase agreements: U.S. Treasury securities excluding TIPS,optional financing mechanism series,confirmed from public catalog
+PDSIRRA-UTSETTOT,Reverse repurchase agreements: U.S. Treasury securities excluding TIPS,optional financing mechanism series,confirmed from public catalog

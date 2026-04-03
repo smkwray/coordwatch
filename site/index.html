@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>CoordWatch</title>
+  <script src="js/theme.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <a class="site-logo" href="#">Coord<span>Watch</span></a>
+  <nav>
+    <ul class="nav-links">
+      <li><a href="#drainage">Drainage</a></li>
+      <li><a href="#absorption">Absorption</a></li>
+      <li><a href="#cost">Cost</a></li>
+      <li><a href="#response">Response</a></li>
+      <li><a href="#buffer">Buffer</a></li>
+      <li><a href="#regimes">Regimes</a></li>
+      <li><a href="#econometrics">Econometrics</a></li>
+    </ul>
+  </nav>
+  <div class="header-controls">
+    <button id="theme-toggle" class="theme-btn" aria-label="Toggle theme"></button>
+    <button id="nav-toggle" class="nav-btn" aria-label="Toggle navigation">&#9776;</button>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>Does Treasury debt management offset or amplify the effects of Fed QT?</h1>
+  <p class="hero-sub">Under an ample-reserves regime, the effective monetary stance depends jointly on Fed balance-sheet runoff, Treasury issuance composition, and private intermediation capacity. This project follows the balance sheets.</p>
+  <div class="stats-row">
+    <div class="stat-chip">
+      <span class="stat-value" id="stat-soma">&mdash;</span>
+      <span class="stat-label">SOMA decline (QT2)</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-value" id="stat-dealer">&mdash;</span>
+      <span class="stat-label">Dealer inventories (latest)</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-value" id="stat-onrrp">&mdash;</span>
+      <span class="stat-label">ON RRP drained</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-value" id="stat-spread">&mdash;</span>
+      <span class="stat-label">Repo spread (latest)</span>
+    </div>
+  </div>
+</section>
+
+<main class="content">
+
+  <!-- ========== The Great Drainage ========== -->
+  <section class="section" id="drainage">
+    <div class="section-header">
+      <h2>The Great Drainage</h2>
+      <span class="section-tag">Balance Sheet</span>
+    </div>
+    <p>When the Fed lets Treasuries roll off its balance sheet, someone else must hold them. Meanwhile, the ON RRP facility &mdash; which once absorbed $2.5 trillion of excess liquidity &mdash; has drained to near zero. These two forces define the pressure on the private sector.</p>
+    <div class="chart-pair">
+      <div class="chart-container">
+        <p class="loading">Loading SOMA data&hellip;</p>
+        <canvas id="somaChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <p class="loading">Loading ON RRP data&hellip;</p>
+        <canvas id="onrrpChart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== Who Absorbs the Duration? ========== -->
+  <section class="section" id="absorption">
+    <div class="section-header">
+      <h2>Who Absorbs the Duration?</h2>
+      <span class="section-tag">Dealers</span>
+    </div>
+    <p>Primary dealers are the first line of absorption. As SOMA declines and Treasury continues issuing, dealer inventories have more than doubled.</p>
+    <div class="chart-single">
+      <div class="chart-container">
+        <p class="loading">Loading dealer data&hellip;</p>
+        <canvas id="dealerChart"></canvas>
+      </div>
+    </div>
+    <div class="insight-box">
+      <strong>During QT2</strong>, the correlation between SOMA decline and dealer inventory buildup is <strong>r = &minus;0.89</strong>. Dealers absorb what the Fed sheds.
+    </div>
+  </section>
+
+  <!-- ========== What Does It Cost? ========== -->
+  <section class="section" id="cost">
+    <div class="section-header">
+      <h2>What Does It Cost?</h2>
+      <span class="section-tag">Repo Market</span>
+    </div>
+    <p>Repo spreads measure the price of overnight Treasury financing relative to the Fed&rsquo;s administered rates. As the ON RRP buffer drains and dealer balance sheets fill, spreads have widened.</p>
+    <div class="chart-single">
+      <div class="chart-container">
+        <p class="loading">Loading repo data&hellip;</p>
+        <canvas id="repoChart"></canvas>
+      </div>
+    </div>
+    <div class="insight-box">
+      <strong>During QT2</strong>, repo spreads correlate <strong>r = 0.83</strong> with dealer inventories and <strong>r = &minus;0.80</strong> with system liquidity. As the buffer drains, funding costs rise.
+    </div>
+  </section>
+
+  <!-- ========== Treasury's Issuance Response ========== -->
+  <section class="section" id="response">
+    <div class="section-header">
+      <h2>Treasury&rsquo;s Issuance Response</h2>
+      <span class="section-tag">Duration</span>
+    </div>
+    <p>Net private duration supply measures how much duration the private sector must absorb: coupon issuance + SOMA runoff &minus; buybacks. When Treasury launched its buyback program in May 2024, it began actively removing duration from the market.</p>
+    <div class="chart-single">
+      <div class="chart-container">
+        <p class="loading">Loading quarterly data&hellip;</p>
+        <canvas id="netDurationChart"></canvas>
+      </div>
+    </div>
+    <div class="insight-box">
+      By <strong>2025Q2</strong>, net private duration supply turned negative &mdash; buybacks were removing more duration than new issuance and SOMA runoff were adding. The green bars show quarters where Treasury was net-removing duration from private markets.
+    </div>
+  </section>
+
+  <!-- ========== The Buffer ========== -->
+  <section class="section" id="buffer">
+    <div class="section-header">
+      <h2>The Buffer</h2>
+      <span class="section-tag">ON RRP</span>
+    </div>
+    <p>The ON RRP facility acted as a liquidity buffer during early QT &mdash; money market funds parked cash there instead of in reserves. As the buffer drains, the system becomes more sensitive to further drainage.</p>
+    <div class="chart-pair">
+      <div class="chart-container">
+        <p class="loading">Loading ON RRP share data&hellip;</p>
+        <canvas id="onrrpShareChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <p class="loading">Loading TGA data&hellip;</p>
+        <canvas id="tgaChart"></canvas>
+      </div>
+    </div>
+    <div class="insight-box">
+      <strong>TGA-Reserves pass-through:</strong> When Treasury builds its cash balance, reserves drain mechanically (QT2 correlation: <strong>r = &minus;0.56</strong>). This means Treasury&rsquo;s cash management has immediate implications for bank reserve conditions.
+    </div>
+  </section>
+
+  <!-- ========== Regime Comparison ========== -->
+  <section class="section" id="regimes">
+    <div class="section-header">
+      <h2>Comparing Regimes</h2>
+      <span class="section-tag">Data</span>
+    </div>
+    <p>How do key variables compare across different Fed balance-sheet regimes and specific episodes?</p>
+
+    <div id="regimeTable"><p class="loading">Loading regime data&hellip;</p></div>
+    <div id="episodeTable"><p class="loading">Loading episode data&hellip;</p></div>
+    <div id="corrTable"><p class="loading">Loading correlation data&hellip;</p></div>
+  </section>
+
+  <!-- ========== Supporting Econometrics ========== -->
+  <section class="section" id="econometrics">
+    <div class="section-header">
+      <h2>Supporting Econometrics</h2>
+      <span class="section-tag">Supplementary</span>
+    </div>
+    <p>The descriptive evidence above stands on its own. These regressions corroborate the institutional story.</p>
+
+    <div class="collapsible">
+      <div class="collapsible-header">Reaction Function</div>
+      <div class="collapsible-body">
+        <div style="padding:16px">
+          <p style="margin-bottom:12px;color:var(--c-text-muted);font-size:0.9rem">Does Treasury&rsquo;s issuance-mix shock respond to Fed balance-sheet pressure? OLS with HC3 robust standard errors. Dependent variable: mix_shock_dv01.</p>
+          <div id="reactionTable"><p class="loading">Loading&hellip;</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="collapsible">
+      <div class="collapsible-header">Local Projections</div>
+      <div class="collapsible-body">
+        <div style="padding:16px">
+          <p style="margin-bottom:12px;color:var(--c-text-muted);font-size:0.9rem">Multi-horizon impulse responses of dealer inventories and repo spreads to fed_pressure_dv01 shocks, with HAC standard errors.</p>
+          <div id="lpDealerTable"><p class="loading">Loading&hellip;</p></div>
+          <div id="lpRepoTable" style="margin-top:16px"><p class="loading">Loading&hellip;</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>CoordWatch &mdash; Measuring Fed-Treasury operational interdependence under ample reserves</p>
+  <p>Built with free public data from FRED, NY Fed, and Treasury.</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script src="js/charts.js"></script>
+</body>
+</html>

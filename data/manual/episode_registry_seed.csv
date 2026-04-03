@@ -1,0 +1,15 @@
+episode_id,window_start,window_end,episode_name,classification_prior,clean_sample_flag,source_url,verification_status,notes
+qe3,2012-09-01,2014-10-31,QE3 expansion,qe_expansion,1,,verified,Fed buying $85bn/mo; Treasury shifting toward coupons
+taper_tantrum,2013-05-01,2013-12-31,Taper tantrum,market_stress,1,,verified,May-Dec 2013 rate spike on taper announcement
+reinvestment_plateau,2014-11-01,2017-09-30,SOMA reinvestment plateau,reinvestment_hold,1,,verified,SOMA held flat; all maturities reinvested
+qt1,2017-10-01,2019-07-31,QT1 balance-sheet normalization,qt_runoff,1,,verified,Gradual cap-based SOMA runoff; repo stress emerged Sep 2019
+repo_crisis_2019,2019-09-01,2019-10-31,September 2019 repo crisis,market_stress,0,,verified,Overnight repo spike to 10%; Fed resumed purchases
+covid_qe,2020-03-01,2022-03-31,COVID QE expansion,qe_expansion,1,,verified,Massive SOMA expansion; Treasury shifted heavily to bills then back
+qt2_early,2022-06-01,2023-06-30,QT2 early phase,qt_runoff,1,,verified,Caps at $30bn/mo Treasuries; ON RRP still elevated
+debt_ceiling_2023,2023-01-01,2023-06-30,2023 debt ceiling,confounded_mechanical,0,,verified,TGA drawn to near-zero; bill issuance constrained
+bill_pivot_2023,2023-08-01,2024-01-31,2023 bill pivot,bill_pivot,1,,verified,Treasury shifted ~$1T to bills after debt ceiling; ON RRP drained
+qt2_core,2024-02-01,2025-06-30,QT2 main phase with buybacks,qt_runoff,1,,verified,QT at full pace; buyback program launched May 2024
+buyback_launch,2024-05-01,2025-06-30,Treasury buyback program,buyback_active,1,,verified,Regular buybacks removing off-the-run duration from market
+qt2_taper,2025-04-01,2025-12-31,QT2 taper phase,qt_taper,1,,verified,Treasury cap reduced to $5bn/mo from April 2025
+debt_ceiling_2025,2025-01-01,2025-06-30,2025 debt ceiling,confounded_mechanical,0,,verified,TGA drawn down; extraordinary measures; bill issuance curtailed
+post_qt_appendix,2025-12-01,2026-12-31,Post-QT reserve management,appendix_validation,0,,verified,Validation window after QT ends
