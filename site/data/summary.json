@@ -1,0 +1,147 @@
+{
+  "project": "CoordWatch",
+  "generated_at_utc": "2026-04-03T17:29:53.206431+00:00",
+  "quarter_rows": 68,
+  "weekly_rows": 1214,
+  "runoff_source_counts": {
+    "holdings_detail": 1173,
+    "holdings_gap": 41
+  },
+  "episode_rows": 14,
+  "reaction_n_obs": 68,
+  "weekly_frequency": "W-WED",
+  "site_window_start": "2003-01-01",
+  "headline_reaction_terms": [
+    {
+      "term": "const",
+      "coef": -94.7758023245008,
+      "p_value": 0.0494312199389786
+    },
+    {
+      "term": "expected_soma_redemptions_dv01",
+      "coef": -0.0285893169674238,
+      "p_value": 0.1035958932376177
+    },
+    {
+      "term": "low_liquidity_prev",
+      "coef": 196.600043734779,
+      "p_value": 0.1902382031601651
+    },
+    {
+      "term": "expected_soma_redemptions_x_low_liquidity",
+      "coef": 0.0872463359849577,
+      "p_value": 0.4116906080538399
+    },
+    {
+      "term": "privately_held_net_marketable_borrowing_bn",
+      "coef": 0.3716558824233351,
+      "p_value": 0.0241265546897152
+    },
+    {
+      "term": "debt_limit_flag",
+      "coef": -47.95393251507219,
+      "p_value": 0.3479905063200105
+    },
+    {
+      "term": "buyback_offset_dv01",
+      "coef": -0.5561176381737775,
+      "p_value": 0.3529474097771534
+    }
+  ],
+  "measurement_notes": [
+    {
+      "title": "Frequency alignment",
+      "detail": "The public weekly panel uses Wednesday observations. Daily money-market inputs are kept separate before weekly aggregation."
+    },
+    {
+      "title": "Runoff measure",
+      "detail": "Weekly qt_runoff_dv01 compares consecutive New York Fed SOMA holdings snapshots at the CUSIP level, then weights holdings declines by remaining maturity and coupon-duration proxies. When holdings detail is unavailable, the series falls back to a quarterly allocation; qt_runoff_proxy_bn remains a separate level-change monitor."
+    },
+    {
+      "title": "Runoff coverage",
+      "detail": "Most public-window weeks use holdings-detail runoff. A small number of early-window and holiday weeks are marked as holdings gaps when the New York Fed payload does not carry usable security identifiers."
+    },
+    {
+      "title": "Liquidity state",
+      "detail": "Quarterly low_liquidity_prev is derived from average weekly system liquidity, defined as reserves plus ON RRP."
+    },
+    {
+      "title": "Manual review",
+      "detail": "Episode windows and selected refunding inputs use manual review files. Debt-limit periods are treated as confounded windows rather than clean policy comparisons."
+    },
+    {
+      "title": "Interpretation",
+      "detail": "Balance-sheet identities and descriptive comparisons are primary. Correlations and regressions are supplementary checks, not stand-alone proof of intent."
+    }
+  ],
+  "data_files": [
+    "weekly_panel.json",
+    "quarterly_panel.json",
+    "episode_registry.json",
+    "regime_summary.json",
+    "episode_summary.json",
+    "qt_comparison_summary.json",
+    "quarterly_descriptive.json",
+    "correlation_matrix.json",
+    "reaction_function_main.json",
+    "main_lp_dealer.json",
+    "main_lp_repo.json"
+  ],
+  "artifact_hashes": [
+    {
+      "file": "weekly_panel.json",
+      "sha256": "d2a8826aebcbf0dcfb3875e3f3ad5f463ea3fa5728a2dfe52dde0f63e542b441",
+      "size_bytes": 851709
+    },
+    {
+      "file": "quarterly_panel.json",
+      "sha256": "b23430e73657f25aa9725284d38b35a75bf83ab06c5268c0808834cf36741e4b",
+      "size_bytes": 92127
+    },
+    {
+      "file": "episode_registry.json",
+      "sha256": "f53037e4ded717147b2b1fb0633ccbeff3f05293e380215fd801e3a97fcc34a2",
+      "size_bytes": 7702
+    },
+    {
+      "file": "regime_summary.json",
+      "sha256": "57b9cdafb33b016fc2fee7c6861cfc25733ef04434025dcf557085889cdbda45",
+      "size_bytes": 2759
+    },
+    {
+      "file": "episode_summary.json",
+      "sha256": "8902558cdae73cc4d2f62ec20e8760dfa295e333d9312f2344a013bfa080e6b6",
+      "size_bytes": 5732
+    },
+    {
+      "file": "qt_comparison_summary.json",
+      "sha256": "7b859cbb98df490fd5fbea632f90949b7ac2f8875f61588cadda4a604c26545f",
+      "size_bytes": 789
+    },
+    {
+      "file": "quarterly_descriptive.json",
+      "sha256": "5be78a7462e5488a40e6fc1c8ba5d5e54ef92140056ada4a3aa4298e8bce896a",
+      "size_bytes": 34879
+    },
+    {
+      "file": "correlation_matrix.json",
+      "sha256": "5d792e0f9cc8ef556a23c13773afcd1e6d691e57721aa28d324ac8a0aa9d87bd",
+      "size_bytes": 1471
+    },
+    {
+      "file": "reaction_function_main.json",
+      "sha256": "0a9aeec15bbe4cf5604b03df7183167c4489462346967faa3dd07d46f9e408ee",
+      "size_bytes": 2222
+    },
+    {
+      "file": "main_lp_dealer.json",
+      "sha256": "41be65852d3343c0ed9615806c439f4e871765275f70e1f181461061f2f1c7f2",
+      "size_bytes": 6222
+    },
+    {
+      "file": "main_lp_repo.json",
+      "sha256": "1dc51c493f0d093ddb351cc7a93f5b4758e82c093236c3575653aff7ffe18f6c",
+      "size_bytes": 6129
+    }
+  ]
+}

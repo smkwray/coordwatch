@@ -14,6 +14,7 @@ docs/
 # Environment
 .env
 .nojekyll
+!site/.nojekyll
 
 # Plans
 *.plan.md
@@ -64,8 +65,6 @@ outputs/tables/*
 outputs/logs/*
 !outputs/logs/.gitkeep
 
-# Site generated content
-site/data/*
-!site/data/.gitkeep
+# Site figures are generated artifacts
 site/figures/*
 !site/figures/.gitkeep

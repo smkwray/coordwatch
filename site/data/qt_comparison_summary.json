@@ -1,0 +1,30 @@
+[
+  {
+    "regime": "QT1",
+    "comparison_weeks": 52,
+    "date_start": "2017-10-04",
+    "date_end": "2018-09-26",
+    "soma_change_bn": -152.26,
+    "reserves_change_bn": -316.72,
+    "on_rrp_change_bn": -173.11,
+    "dealer_inventory_change_bn": 33.45,
+    "repo_spread_bp_mean": 16.31,
+    "repo_spread_bp_change": null,
+    "qt_runoff_dv01_mean": 3.53,
+    "qt_runoff_dv01_cum": 183.35
+  },
+  {
+    "regime": "QT2",
+    "comparison_weeks": 52,
+    "date_start": "2022-06-01",
+    "date_end": "2023-05-24",
+    "soma_change_bn": -575.82,
+    "reserves_change_bn": -81.86,
+    "on_rrp_change_bn": 285.69,
+    "dealer_inventory_change_bn": 87.15,
+    "repo_spread_bp_mean": -3.56,
+    "repo_spread_bp_change": -2.0,
+    "qt_runoff_dv01_mean": 8.58,
+    "qt_runoff_dv01_cum": 446.2
+  }
+]

@@ -1,0 +1,65 @@
+[
+  {
+    "soma_treasuries_bn": 1.0,
+    "reserves_bn": -0.037,
+    "tga_bn": -0.399,
+    "on_rrp_bn": 0.968,
+    "dealer_inventory_bn": -0.884,
+    "repo_spread_bp": -0.733,
+    "system_liquidity_bn": 0.953
+  },
+  {
+    "soma_treasuries_bn": -0.037,
+    "reserves_bn": 1.0,
+    "tga_bn": -0.179,
+    "on_rrp_bn": -0.058,
+    "dealer_inventory_bn": -0.2,
+    "repo_spread_bp": -0.381,
+    "system_liquidity_bn": 0.141
+  },
+  {
+    "soma_treasuries_bn": -0.399,
+    "reserves_bn": -0.179,
+    "tga_bn": 1.0,
+    "on_rrp_bn": -0.565,
+    "dealer_inventory_bn": 0.372,
+    "repo_spread_bp": 0.418,
+    "system_liquidity_bn": -0.596
+  },
+  {
+    "soma_treasuries_bn": 0.968,
+    "reserves_bn": -0.058,
+    "tga_bn": -0.565,
+    "on_rrp_bn": 1.0,
+    "dealer_inventory_bn": -0.872,
+    "repo_spread_bp": -0.73,
+    "system_liquidity_bn": 0.98
+  },
+  {
+    "soma_treasuries_bn": -0.884,
+    "reserves_bn": -0.2,
+    "tga_bn": 0.372,
+    "on_rrp_bn": -0.872,
+    "dealer_inventory_bn": 1.0,
+    "repo_spread_bp": 0.832,
+    "system_liquidity_bn": -0.905
+  },
+  {
+    "soma_treasuries_bn": -0.733,
+    "reserves_bn": -0.381,
+    "tga_bn": 0.418,
+    "on_rrp_bn": -0.73,
+    "dealer_inventory_bn": 0.832,
+    "repo_spread_bp": 1.0,
+    "system_liquidity_bn": -0.802
+  },
+  {
+    "soma_treasuries_bn": 0.953,
+    "reserves_bn": 0.141,
+    "tga_bn": -0.596,
+    "on_rrp_bn": 0.98,
+    "dealer_inventory_bn": -0.905,
+    "repo_spread_bp": -0.802,
+    "system_liquidity_bn": 1.0
+  }
+]
