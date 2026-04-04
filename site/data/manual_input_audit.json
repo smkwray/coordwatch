@@ -21,7 +21,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/tg09",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -32,7 +32,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/tg110",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -43,7 +43,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/tg253",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -54,7 +54,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/tg346",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -65,7 +65,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/tg527",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -76,7 +76,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/tg679",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -87,7 +87,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/tg799",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -98,7 +98,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/tg940",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -109,7 +109,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/tg1045",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -120,7 +120,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/tg1161",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -131,7 +131,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/tg1267",
       "verification_status": "verified",
       "debt_limit_flag": 1,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -142,7 +142,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/tg1348",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -153,7 +153,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/tg1405",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -164,7 +164,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/tg1562",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -175,7 +175,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/tg1663",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -186,7 +186,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/tg1753",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -197,7 +197,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/tg1846",
       "verification_status": "verified",
       "debt_limit_flag": 1,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -208,7 +208,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jl1921",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -219,7 +219,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jl2126",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -230,7 +230,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jl2210",
       "verification_status": "verified",
       "debt_limit_flag": 1,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -241,7 +241,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jl2281",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -252,7 +252,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jl2375",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -263,7 +263,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jl2604",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -274,7 +274,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jl2688",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -285,7 +285,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jl9760",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -296,7 +296,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jl10045",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -307,7 +307,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jl0142",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -318,7 +318,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jl0249",
       "verification_status": "verified",
       "debt_limit_flag": 1,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": true,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance. Cash balance sourced from official financing/refunding release."
     },
@@ -329,7 +329,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jl0338",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -340,7 +340,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jl0449",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -351,7 +351,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jl0595",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -362,7 +362,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jl0602",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -373,7 +373,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/as0001",
       "verification_status": "verified",
       "debt_limit_flag": 1,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -384,7 +384,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/sm0069",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -395,7 +395,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/sm0141",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -406,7 +406,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/sm0200",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -417,7 +417,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/sm0275",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -428,7 +428,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/sm0378",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -439,7 +439,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/sm449",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -450,7 +450,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/sm538",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -461,7 +461,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/sm597",
       "verification_status": "verified",
       "debt_limit_flag": 1,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -472,7 +472,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/sm677",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -483,7 +483,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/sm745",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -494,7 +494,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/sm810",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -505,7 +505,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/sm896",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -516,7 +516,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/sm1001",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -527,7 +527,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/sm1081",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -538,7 +538,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/sm1176",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -549,7 +549,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jy0016",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -560,7 +560,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jy0164",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -571,7 +571,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jy0307",
       "verification_status": "verified",
       "debt_limit_flag": 1,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -582,7 +582,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jy0462",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -593,7 +593,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jy0581",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -604,7 +604,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jy0762",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -615,7 +615,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jy0908",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -626,7 +626,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jy1072",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -637,7 +637,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jy1238",
       "verification_status": "verified",
       "debt_limit_flag": 1,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -648,7 +648,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jy1460",
       "verification_status": "verified",
       "debt_limit_flag": 1,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -659,7 +659,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jy1671",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -670,7 +670,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jy1864",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -681,7 +681,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jy2062",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -692,7 +692,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jy2315",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -703,7 +703,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jy2512",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -714,7 +714,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/jy2697",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -725,7 +725,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/sb0010",
       "verification_status": "verified",
       "debt_limit_flag": 1,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -736,7 +736,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/sb0120",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -747,7 +747,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/sb0212",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     },
@@ -758,7 +758,7 @@
       "statement_url": "https://home.treasury.gov/news/press-releases/sb0305",
       "verification_status": "verified",
       "debt_limit_flag": 0,
-      "clean_sample_flag": 1,
+      "in_sample": 1,
       "cash_balance_statement_sourced": false,
       "reviewer_notes": "Per-tenor deltas not available; DV01 approximated from aggregate issuance."
     }

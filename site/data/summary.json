@@ -1,6 +1,6 @@
 {
   "project": "CoordWatch",
-  "generated_at_utc": "2026-04-04T13:21:20.972121+00:00",
+  "generated_at_utc": "2026-04-04T14:31:51.326623+00:00",
   "quarter_rows": 68,
   "weekly_rows": 1214,
   "runoff_source_counts": {
@@ -173,8 +173,8 @@
     },
     {
       "file": "manual_input_audit.json",
-      "sha256": "edba9dff21ddcf61059b1952598918ebe22897fffae36e180b4b026a1d79ed3c",
-      "size_bytes": 33397
+      "sha256": "e343098eca0f215d1609471001d030d07c64d5ae2d829dee9cd7f0005122803c",
+      "size_bytes": 32853
     },
     {
       "file": "daily_mechanics_appendix.json",

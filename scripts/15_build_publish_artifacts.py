@@ -112,6 +112,7 @@ def _build_manual_input_audit(manual: pd.DataFrame) -> dict:
             "reviewer_notes",
         ]
     ].copy()
+    manual_rows = manual_rows.rename(columns={"clean_sample_flag": "in_sample"})
     manual_rows["refunding_date"] = manual_rows["refunding_date"].dt.strftime("%Y-%m-%d")
     manual_rows = manual_rows.sort_values("quarter")
     summary = {
