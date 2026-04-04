@@ -1,6 +1,6 @@
 {
   "project": "CoordWatch",
-  "generated_at_utc": "2026-04-04T12:49:24.519122+00:00",
+  "generated_at_utc": "2026-04-04T13:21:20.972121+00:00",
   "quarter_rows": 68,
   "weekly_rows": 1214,
   "runoff_source_counts": {
@@ -66,7 +66,7 @@
     },
     {
       "title": "Liquidity state",
-      "detail": "Quarterly low_liquidity_prev is derived from average weekly system liquidity, defined as reserves plus ON RRP."
+      "detail": "The model interaction terms use low_liquidity / low_liquidity_prev, defined by the project-wide 35th-percentile threshold on system liquidity (reserves + ON RRP). The dashboard QT2 state split uses a separate qt2_low_liquidity field computed as the QT2-subsample median of system liquidity. The two definitions serve different purposes: the model state applies across the full sample, while the dashboard split divides QT2 weeks at the period median."
     },
     {
       "title": "Manual review",
@@ -173,8 +173,8 @@
     },
     {
       "file": "manual_input_audit.json",
-      "sha256": "356f01b967f80d1c191fef0455ce6edce95e98ea01f5a50882d20c3a4c921021",
-      "size_bytes": 33396
+      "sha256": "edba9dff21ddcf61059b1952598918ebe22897fffae36e180b4b026a1d79ed3c",
+      "size_bytes": 33397
     },
     {
       "file": "daily_mechanics_appendix.json",

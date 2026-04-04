@@ -3,7 +3,7 @@
     "manual_quarter_rows": 68,
     "verified_rows": 68,
     "debt_limit_rows": 10,
-    "clean_rows": 68,
+    "sample_rows": 68,
     "cash_balance_statement_sourced_rows": 28,
     "rows_with_reviewer_notes": 68,
     "workflow_notes": [

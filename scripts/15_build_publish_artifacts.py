@@ -118,7 +118,7 @@ def _build_manual_input_audit(manual: pd.DataFrame) -> dict:
         "manual_quarter_rows": int(len(manual_rows)),
         "verified_rows": int(manual["verification_status"].fillna("").eq("verified").sum()),
         "debt_limit_rows": int(pd.to_numeric(manual["debt_limit_flag"], errors="coerce").fillna(0).astype(int).sum()),
-        "clean_rows": int(pd.to_numeric(manual["clean_sample_flag"], errors="coerce").fillna(0).astype(int).sum()),
+        "sample_rows": int(pd.to_numeric(manual["clean_sample_flag"], errors="coerce").fillna(0).astype(int).sum()),
         "cash_balance_statement_sourced_rows": int(manual["cash_balance_statement_sourced"].sum()),
         "rows_with_reviewer_notes": int(manual["has_reviewer_notes"].sum()),
         "workflow_notes": _load_manual_workflow_notes(MANUAL_DIR / "README.md"),
@@ -635,7 +635,7 @@ def main() -> None:
             },
             {
                 "title": "Liquidity state",
-                "detail": "Quarterly low_liquidity_prev is derived from average weekly system liquidity, defined as reserves plus ON RRP."
+                "detail": "The model interaction terms use low_liquidity / low_liquidity_prev, defined by the project-wide 35th-percentile threshold on system liquidity (reserves + ON RRP). The dashboard QT2 state split uses a separate qt2_low_liquidity field computed as the QT2-subsample median of system liquidity. The two definitions serve different purposes: the model state applies across the full sample, while the dashboard split divides QT2 weeks at the period median."
             },
             {
                 "title": "Manual review",

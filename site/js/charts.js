@@ -1090,8 +1090,9 @@
     var rows = audit.rows || [];
     var chips = [
       { value: summary.manual_quarter_rows, label: 'Manual quarter rows' },
+      { value: summary.sample_rows, label: 'In regression sample (incl. debt-limit)' },
+      { value: summary.debt_limit_rows, label: 'Debt-limit rows (flagged, in sample)' },
       { value: summary.verified_rows, label: 'Verified rows' },
-      { value: summary.debt_limit_rows, label: 'Debt-limit rows' },
       { value: summary.cash_balance_statement_sourced_rows, label: 'Cash-balance rows sourced from statement text' }
     ];
     var chipsHtml = chips.map(function (chip) {
