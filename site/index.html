@@ -15,18 +15,18 @@
   <a class="site-logo" href="#">Coord<span>Watch</span></a>
   <nav>
     <ul class="nav-links">
-      <li><a href="#drainage">Drainage</a></li>
-      <li><a href="#buffer">Buffer</a></li>
-      <li><a href="#cash">Cash</a></li>
+      <li><a href="#drainage">Fed runoff</a></li>
+      <li><a href="#buffer">Liquidity</a></li>
+      <li><a href="#cash">Treasury cash</a></li>
       <li><a href="#response">Duration</a></li>
-      <li><a href="#channels">Channels</a></li>
+      <li><a href="#channels">Market channels</a></li>
       <li><a href="#absorption">Dealers</a></li>
-      <li><a href="#sectors">Sectors</a></li>
-      <li><a href="#issuance">Issuance</a></li>
+      <li><a href="#sectors">Holders</a></li>
+      <li><a href="#issuance">Auction mix</a></li>
       <li><a href="#cost">Repo</a></li>
-      <li><a href="#regimes">Regimes</a></li>
-      <li><a href="#notes">Notes</a></li>
-      <li><a href="#econometrics">Checks</a></li>
+      <li><a href="#regimes">Episodes</a></li>
+      <li><a href="#notes">Methods</a></li>
+      <li><a href="#econometrics">Models</a></li>
     </ul>
   </nav>
   <div class="header-controls">
@@ -36,8 +36,8 @@
 </header>
 
 <section class="hero">
-  <h1>How do Fed runoff, Treasury debt management, and liquidity conditions combine under ample reserves?</h1>
-  <p class="hero-sub">Under an ample-reserves regime, monetary conditions depend jointly on Fed balance-sheet runoff, Treasury issuance composition, TGA management, ON RRP drainage, and private intermediation capacity. Read the site in that order: drainage and buffers first, then cash mechanics, duration burden, intermediation, sectoral absorption, and only then the supplementary regressions.</p>
+  <h1>How do Fed balance-sheet runoff, Treasury issuance, reserves, and market intermediation move together?</h1>
+  <p class="hero-sub">CoordWatch tracks Fed runoff, Treasury issuance mix, Treasury cash balances, reserves, ON RRP, dealer balance sheets, and repo spreads using public data.</p>
   <div class="stats-row">
     <div class="stat-chip">
       <span class="stat-value" id="stat-soma">&mdash;</span>
@@ -56,22 +56,14 @@
       <span class="stat-label">Repo spread (latest)</span>
     </div>
   </div>
-  <div class="hero-path" aria-label="Suggested reading order">
-    <span class="hero-step">1. Drainage</span>
-    <span class="hero-step">2. Buffer And Cash</span>
-    <span class="hero-step">3. Duration Burden</span>
-    <span class="hero-step">4. Intermediation</span>
-    <span class="hero-step">5. Sectoral Absorption</span>
-    <span class="hero-step">6. Supplementary Checks</span>
-  </div>
 </section>
 
 <main class="content">
 
-  <!-- ========== The Great Drainage ========== -->
+  <!-- ========== Fed Runoff ========== -->
   <section class="section" id="drainage">
     <div class="section-header">
-      <h2>The Great Drainage</h2>
+      <h2>Fed Treasury Runoff</h2>
       <span class="section-tag">Balance Sheet</span>
     </div>
     <p>When the Fed lets Treasuries roll off its balance sheet, someone else must hold them. Meanwhile, the ON RRP facility &mdash; which once absorbed $2.5 trillion of excess liquidity &mdash; has drained to near zero. These two forces define the pressure on the private sector.</p>
@@ -87,10 +79,10 @@
     </div>
   </section>
 
-  <!-- ========== The Buffer ========== -->
+  <!-- ========== Liquidity Buffers ========== -->
   <section class="section" id="buffer">
     <div class="section-header">
-      <h2>The Buffer</h2>
+      <h2>Liquidity Buffers</h2>
       <span class="section-tag">ON RRP</span>
     </div>
     <p>The ON RRP facility acted as a liquidity buffer during early QT. As that buffer drains, the system becomes more sensitive to the same amount of runoff or cash-balance pressure.</p>
@@ -141,9 +133,16 @@
     <p>Net private duration supply tracks how much duration the private sector must absorb: coupon issuance + SOMA runoff &minus; buybacks. Treasury&rsquo;s issuance mix can offset or amplify that burden even when the overall deficit is unchanged.</p>
     <div class="chart-single">
       <div class="chart-container">
-        <p class="loading">Loading quarterly data&hellip;</p>
-        <canvas id="netDurationChart"></canvas>
+        <p class="loading">Loading duration decomposition&hellip;</p>
+        <canvas id="durationDecompChart"></canvas>
       </div>
+    </div>
+    <div class="chart-single">
+      <div class="chart-container">
+        <p class="loading">Loading offset/amplify scatter&hellip;</p>
+        <canvas id="offsetScatterChart"></canvas>
+      </div>
+      <p class="chart-caption">Each dot is one quarter. <em>x</em>-axis: Fed runoff duration (SOMA redemptions DV01). <em>y</em>-axis: Treasury issuance mix shock DV01. Positive mix shock = amplifying; negative = offsetting.</p>
     </div>
     <div class="insight-box" id="durationInsight">
       <p class="loading">Loading insight&hellip;</p>
@@ -152,10 +151,10 @@
 
   <section class="section" id="channels">
     <div class="section-header">
-      <h2>Three Transmission Channels</h2>
+      <h2>Market Channels</h2>
       <span class="section-tag">Dashboard</span>
     </div>
-    <p>This dashboard separates reserve conditions, duration burden, and intermediation capacity. It is the shortest path through the balance-sheet story and keeps the argument descriptive.</p>
+    <p>This dashboard separates reserve conditions, duration burden, and intermediation capacity.</p>
     <div id="channelCards" class="channel-grid"><p class="loading">Loading channel decomposition&hellip;</p></div>
     <div id="bufferSplitTable"><p class="loading">Loading state split&hellip;</p></div>
     <div class="insight-box" id="channelInsight">
@@ -163,13 +162,13 @@
     </div>
   </section>
 
-  <!-- ========== Dealer Absorption ========== -->
+  <!-- ========== Dealer Balance Sheets ========== -->
   <section class="section" id="absorption">
     <div class="section-header">
-      <h2>Dealer Absorption</h2>
+      <h2>Dealer Balance Sheets</h2>
       <span class="section-tag">Dealers</span>
     </div>
-    <p>Primary dealers are the first line of absorption. This section keeps the focus on the front-line balance sheet before the sector appendix broadens the view to the rest of the system.</p>
+    <p>Primary dealers are the first line of absorption. Dealer inventories show the front-line balance-sheet response before the sector appendix broadens the view.</p>
     <div class="chart-single">
       <div class="chart-container">
         <p class="loading">Loading dealer data&hellip;</p>
@@ -183,7 +182,7 @@
 
   <section class="section" id="sectors">
     <div class="section-header">
-      <h2>Sectoral Absorbers</h2>
+      <h2>Treasury Holders</h2>
       <span class="section-tag">Appendix</span>
     </div>
     <p>This appendix extends the dealer view to published quarterly holder sectors. It tracks how much of the Treasury stock sits with households, banks, money funds, mutual funds, dealers, rest of world, and other private sectors.</p>
@@ -226,13 +225,13 @@
     </div>
   </section>
 
-  <!-- ========== What Does It Cost? ========== -->
+  <!-- ========== Repo Spreads ========== -->
   <section class="section" id="cost">
     <div class="section-header">
-      <h2>Intermediation Cost</h2>
+      <h2>Repo Spreads</h2>
       <span class="section-tag">Repo Market</span>
     </div>
-    <p>Repo spreads measure the financing cost of Treasury intermediation relative to the Fed&rsquo;s administered rates. As buffers drain and dealer balance sheets fill, this is where pressure should become visible first.</p>
+    <p>Repo spreads measure the financing cost of Treasury intermediation relative to the Fed&rsquo;s administered rates. As buffers drain and dealer balance sheets fill, this is where pressure becomes visible.</p>
     <div class="chart-single">
       <div class="chart-container">
         <p class="loading">Loading repo data&hellip;</p>
@@ -247,7 +246,7 @@
   <!-- ========== Regime Comparison ========== -->
   <section class="section" id="regimes">
     <div class="section-header">
-      <h2>Episode And Regime Comparisons</h2>
+      <h2>Episode and Regime Comparisons</h2>
       <span class="section-tag">Data</span>
     </div>
     <p>These tables summarize how the same variables look across major Fed balance-sheet regimes and selected episode windows.</p>
@@ -278,29 +277,29 @@
     </div>
   </section>
 
-  <!-- ========== Supporting Econometrics ========== -->
+  <!-- ========== Regression Results ========== -->
   <section class="section" id="econometrics">
     <div class="section-header">
-      <h2>Supplementary Checks</h2>
-      <span class="section-tag">Supplement</span>
+      <h2>Regression Results</h2>
+      <span class="section-tag">Models</span>
     </div>
-    <p>The descriptive sections above are the main evidence. These smaller-sample regressions are supplementary checks on the same balance-sheet story and should be read after the descriptive exhibits.</p>
+    <p>These regressions estimate statistical relationships in the published quarterly and weekly samples.</p>
 
     <div class="collapsible">
-      <div class="collapsible-header">Quarterly Reaction Check</div>
+      <div class="collapsible-header">Quarterly Issuance Model</div>
       <div class="collapsible-body">
         <div style="padding:16px">
-          <p style="margin-bottom:12px;color:var(--c-text-muted);font-size:0.9rem">How does Treasury&rsquo;s issuance mix move alongside Fed balance-sheet pressure? OLS with HC3 robust standard errors. Dependent variable: mix_shock_dv01. This is a compact quarterly check, not the identification strategy.</p>
+          <p style="margin-bottom:12px;color:var(--c-text-muted);font-size:0.9rem">How does Treasury&rsquo;s issuance mix move alongside Fed balance-sheet pressure? OLS with HC3 robust standard errors. Dependent variable: mix_shock_dv01.</p>
           <div id="reactionTable"><p class="loading">Loading&hellip;</p></div>
         </div>
       </div>
     </div>
 
     <div class="collapsible">
-      <div class="collapsible-header">Weekly Local Projection Check</div>
+      <div class="collapsible-header">Weekly Response Estimates</div>
       <div class="collapsible-body">
         <div style="padding:16px">
-          <p style="margin-bottom:12px;color:var(--c-text-muted);font-size:0.9rem">Multi-horizon responses of dealer inventories and repo spreads to fed_pressure_dv01 shocks, with HAC standard errors. These are best read as supporting checks on the descriptive channel splits above.</p>
+          <p style="margin-bottom:12px;color:var(--c-text-muted);font-size:0.9rem">Multi-horizon responses of dealer inventories and repo spreads to fed_pressure_dv01 shocks, with HAC standard errors.</p>
           <div id="lpDealerTable"><p class="loading">Loading&hellip;</p></div>
           <div id="lpRepoTable" style="margin-top:16px"><p class="loading">Loading&hellip;</p></div>
         </div>
@@ -311,7 +310,7 @@
 </main>
 
 <footer class="site-footer">
-  <p>CoordWatch &mdash; Tracking balance-sheet interactions under ample reserves</p>
+  <p>CoordWatch &mdash; Fed runoff, Treasury issuance, reserves, and market intermediation</p>
   <p>Built with free public data from FRED, NY Fed, and Treasury.</p>
 </footer>
 

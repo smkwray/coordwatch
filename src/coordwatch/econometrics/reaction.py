@@ -26,13 +26,13 @@ def run_reaction_function(df: pd.DataFrame) -> RegressionResultBundle:
     work = df.copy()
     work = work.loc[work.get("clean_sample_flag", 1).fillna(1).astype(int) == 1].copy()
     cols = [dep] + regressors
-    work = work[cols + [c for c in ["quarter", "classification_prior"] if c in work.columns]].dropna(subset=[dep])
+    work = work[cols + [c for c in ["quarter"] if c in work.columns]].dropna(subset=[dep])
     X = work[regressors].apply(pd.to_numeric, errors="coerce")
     y = pd.to_numeric(work[dep], errors="coerce")
     valid = X.notna().all(axis=1) & y.notna()
     X = X.loc[valid]
     y = y.loc[valid]
-    meta = work.loc[valid, [c for c in ["quarter", "classification_prior"] if c in work.columns]].reset_index(drop=True)
+    meta = work.loc[valid, [c for c in ["quarter"] if c in work.columns]].reset_index(drop=True)
     X = sm.add_constant(X)
     result = sm.OLS(y, X).fit(cov_type=cov)
 

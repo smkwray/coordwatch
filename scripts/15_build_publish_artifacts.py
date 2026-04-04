@@ -108,7 +108,6 @@ def _build_manual_input_audit(manual: pd.DataFrame) -> dict:
             "verification_status",
             "debt_limit_flag",
             "clean_sample_flag",
-            "classification_prior",
             "cash_balance_statement_sourced",
             "reviewer_notes",
         ]
@@ -511,7 +510,7 @@ def main() -> None:
     lp_dealer = pd.read_csv(OUTPUTS_TABLES_DIR / "main_lp_dealer.csv")
     lp_repo = pd.read_csv(OUTPUTS_TABLES_DIR / "main_lp_repo.csv")
 
-    # Publish econometric tables (supporting evidence)
+    # Publish econometric tables
     publish_table(reaction, "reaction_function_main")
     publish_table(lp_dealer, "main_lp_dealer")
     publish_table(lp_repo, "main_lp_repo")
@@ -524,7 +523,8 @@ def main() -> None:
     weekly_cols = [
         "week", "soma_treasuries_bn", "reserves_bn", "tga_bn", "on_rrp_bn",
         "dealer_inventory_bn", "repo_spread_bp", "system_liquidity_bn",
-        "low_liquidity", "qt_runoff_dv01", "qt_runoff_source", "qt_runoff_proxy_bn",
+        "low_liquidity", "qt2_low_liquidity",
+        "qt_runoff_dv01", "qt_runoff_source", "qt_runoff_proxy_bn",
         "coupon_dv01_shock", "bill_dv01_offset", "mix_shock_dv01",
         "buyback_offset_dv01", "expected_soma_redemptions_dv01",
         "duration_pressure_dv01", "fed_pressure_dv01",
@@ -553,10 +553,11 @@ def main() -> None:
         write_json(PUBLISH_DIR / "auction_mix_appendix.json", auction_mix_appendix)
         write_json(ROOT / "site" / "data" / "auction_mix_appendix.json", auction_mix_appendix)
 
-    # Quarterly panel: full
-    publish_table(_ts_to_str(quarter), "quarterly_panel")
+    # Quarterly panel: full (drop classification_prior — not meaningful in published data)
+    quarter_pub = quarter.drop(columns=["classification_prior"], errors="ignore")
+    publish_table(_ts_to_str(quarter_pub), "quarterly_panel")
 
-    # Publish descriptive tables (core evidence)
+    # Publish descriptive tables
     for table_name in ["regime_summary", "episode_summary", "quarterly_descriptive", "correlation_matrix"]:
         path = TABLES_DIR / f"{table_name}.csv"
         if path.exists():
@@ -638,7 +639,7 @@ def main() -> None:
             },
             {
                 "title": "Manual review",
-                "detail": "Episode windows and selected refunding inputs use manual review files. Debt-limit periods are treated as confounded windows rather than clean policy comparisons."
+                "detail": "Episode windows and selected refunding inputs use manual review files. Debt-limit quarters are flagged (debt_limit_flag = 1) for separate inspection but remain in the regression sample."
             },
             {
                 "title": "Sample coverage",
@@ -662,7 +663,7 @@ def main() -> None:
             },
             {
                 "title": "Interpretation",
-                "detail": "Balance-sheet identities and descriptive comparisons are primary. Correlations and regressions are supplementary checks, not stand-alone proof of intent."
+                "detail": "The site reports balance-sheet quantities, market variables, and model estimates from the same public data bundle. Regression tables summarize statistical relationships in the published sample."
             }
         ],
         "data_files": data_files,

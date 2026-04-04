@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from coordwatch.construct.liquidity import add_liquidity_state, add_repo_spreads, compute_qt_runoff_proxy
+from coordwatch.construct.liquidity import add_liquidity_state, add_qt2_liquidity_state, add_repo_spreads, compute_qt_runoff_proxy
 from coordwatch.construct.refunding import attach_quarterly_liquidity_state
 from coordwatch.io import write_csv, write_parquet
 from coordwatch.logging_utils import get_logger
@@ -318,6 +318,8 @@ def build_weekly_master_panel(refunding_panel: pd.DataFrame, prefer_real: bool =
         weekly = add_liquidity_state(weekly)
     if "low_liquidity_prev" not in weekly.columns:
         weekly["low_liquidity_prev"] = weekly["low_liquidity"].shift(1).fillna(0).astype(int)
+    if "qt2_low_liquidity" not in weekly.columns and "system_liquidity_bn" in weekly.columns:
+        weekly = add_qt2_liquidity_state(weekly)
     weekly["fed_pressure_x_low_liquidity"] = (weekly["fed_pressure_dv01"] * weekly["low_liquidity_prev"]).round(2)
     weekly["dealer_inventory_lag1"] = weekly["dealer_inventory_bn"].shift(1)
     weekly["repo_spread_lag1"] = weekly["repo_spread_bp"].shift(1)

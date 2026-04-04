@@ -28,6 +28,28 @@ def add_liquidity_state(
     return out
 
 
+def add_qt2_liquidity_state(
+    df: pd.DataFrame,
+    liquidity_col: str = "system_liquidity_bn",
+    qt2_start: str = "2022-06-01",
+) -> pd.DataFrame:
+    """Add a QT2-specific low-liquidity flag using the QT2-subsample median."""
+    out = df.copy()
+    week_col = out["week"] if "week" in out.columns else out.index
+    qt2_mask = pd.to_datetime(week_col, errors="coerce") >= pd.Timestamp(qt2_start)
+    qt2_vals = out.loc[qt2_mask, liquidity_col].dropna()
+    if qt2_vals.empty:
+        out["qt2_low_liquidity"] = np.nan
+        return out
+    qt2_median = float(qt2_vals.median())
+    out["qt2_low_liquidity"] = np.where(
+        qt2_mask & out[liquidity_col].notna(),
+        (out[liquidity_col] <= qt2_median).astype(int),
+        np.nan,
+    )
+    return out
+
+
 def add_repo_spreads(df: pd.DataFrame, tgcr_col: str = "tgcr_rate", on_rrp_col: str = "on_rrp_award_rate", iorb_col: str = "iorb_rate") -> pd.DataFrame:
     out = df.copy()
     if tgcr_col in out.columns and on_rrp_col in out.columns:

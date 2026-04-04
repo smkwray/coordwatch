@@ -2,13 +2,13 @@
 
 **[Live site](https://smkwray.github.io/coordwatch/)**
 
-Tracking how Fed runoff, Treasury issuance, the TGA, ON RRP, and private intermediation interact under ample reserves.
+Tracking Fed balance-sheet runoff, Treasury issuance, reserves, and market intermediation.
 
 ## Question
 
-**How do Fed runoff, Treasury debt management, and liquidity conditions combine under an ample-reserves regime?**
+**How do Fed balance-sheet runoff, Treasury issuance, reserves, and market intermediation move together?**
 
-The effective stance of monetary conditions depends jointly on Fed balance-sheet runoff, Treasury issuance composition, TGA management, ON RRP drainage, and private intermediation capacity. CoordWatch follows the balance sheets using free public data.
+CoordWatch follows Fed runoff, Treasury issuance composition, TGA management, ON RRP drainage, dealer balance sheets, and repo spreads using free public data.
 
 ## What it measures
 
@@ -19,8 +19,6 @@ The effective stance of monetary conditions depends jointly on Fed balance-sheet
 5. Do buybacks act as a release valve for duration pressure?
 6. How does ON RRP drainage change money-market sensitivity?
 7. How do lower-buffer states differ from higher-buffer states?
-
-Descriptive evidence is the core analysis. The site is organized around reserve drainage, buffers, cash mechanics, duration burden, intermediation, sectoral absorption, and realized issuance. Light econometrics appear only as supplementary checks.
 
 ## Data
 
@@ -65,14 +63,13 @@ make verify        Check all artifacts present
 
 ## Public structure
 
-1. Drainage and buffer conditions.
+1. Fed runoff and liquidity buffers.
 2. Debt-ceiling cash mechanics and the DTS cross-check.
-3. Duration burden, dealer absorption, and repo intermediation.
-4. Sectoral absorption and realized auction mix appendices.
-5. Supplementary econometric checks.
+3. Duration burden, dealer balance sheets, and repo spreads.
+4. Treasury holders and realized auction mix appendices.
+5. Regression results.
 
 ## Conventions
 
 - **Positive Fed pressure** = more duration burden on private sector.
 - **Positive buyback offset** = Treasury removes duration from private hands.
-- **Motive-neutral language.** Measures balance-sheet interactions and market effects; does not infer intent.

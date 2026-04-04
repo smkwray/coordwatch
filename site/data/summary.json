@@ -1,6 +1,6 @@
 {
   "project": "CoordWatch",
-  "generated_at_utc": "2026-04-04T11:40:14.098029+00:00",
+  "generated_at_utc": "2026-04-04T12:49:24.519122+00:00",
   "quarter_rows": 68,
   "weekly_rows": 1214,
   "runoff_source_counts": {
@@ -70,7 +70,7 @@
     },
     {
       "title": "Manual review",
-      "detail": "Episode windows and selected refunding inputs use manual review files. Debt-limit periods are treated as confounded windows rather than clean policy comparisons."
+      "detail": "Episode windows and selected refunding inputs use manual review files. Debt-limit quarters are flagged (debt_limit_flag = 1) for separate inspection but remain in the regression sample."
     },
     {
       "title": "Sample coverage",
@@ -94,7 +94,7 @@
     },
     {
       "title": "Interpretation",
-      "detail": "Balance-sheet identities and descriptive comparisons are primary. Correlations and regressions are supplementary checks, not stand-alone proof of intent."
+      "detail": "The site reports balance-sheet quantities, market variables, and model estimates from the same public data bundle. Regression tables summarize statistical relationships in the published sample."
     }
   ],
   "data_files": [
@@ -118,13 +118,13 @@
   "artifact_hashes": [
     {
       "file": "weekly_panel.json",
-      "sha256": "8b44d3d1e7966a6656ede6dfdc6706e3c04ca245d8d1622eba4d268bd8cb0072",
-      "size_bytes": 851709
+      "sha256": "8e8a3a1916590207b0c0344e8308acff2b63058a7d3023b645394cf0f9b62212",
+      "size_bytes": 889142
     },
     {
       "file": "quarterly_panel.json",
-      "sha256": "b23430e73657f25aa9725284d38b35a75bf83ab06c5268c0808834cf36741e4b",
-      "size_bytes": 92127
+      "sha256": "211bf6846218b814928cd362a0619b3e0e6bf9d2e79e1bec3831232a21e501ef",
+      "size_bytes": 88931
     },
     {
       "file": "episode_registry.json",
@@ -173,8 +173,8 @@
     },
     {
       "file": "manual_input_audit.json",
-      "sha256": "c04c9913c56ba697ea8a32c79b81e695b65718ee395960f5250ac0f78138721e",
-      "size_bytes": 36728
+      "sha256": "356f01b967f80d1c191fef0455ce6edce95e98ea01f5a50882d20c3a4c921021",
+      "size_bytes": 33396
     },
     {
       "file": "daily_mechanics_appendix.json",

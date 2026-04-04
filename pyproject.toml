@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "coordwatch"
 version = "0.1.0"
-description = "Measuring Fed-Treasury operational interdependence under ample reserves"
+description = "Fed runoff, Treasury issuance, reserves, and market intermediation"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

@@ -229,53 +229,95 @@
     }));
   }
 
-  function buildNetDuration(qDesc) {
+  var zeroLinePlugin = {
+    id: 'zeroLine',
+    beforeDraw: function (chart) {
+      var ys = chart.scales.y, area = chart.chartArea;
+      if (!ys || !area) return;
+      var y = ys.getPixelForValue(0);
+      if (y < area.top || y > area.bottom) return;
+      var ctx = chart.ctx;
+      ctx.save();
+      ctx.strokeStyle = cwColors().textMuted;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.moveTo(area.left, y); ctx.lineTo(area.right, y); ctx.stroke();
+      ctx.restore();
+    }
+  };
+
+  function buildDurationDecomp(qDesc) {
     var c = cwColors();
-    var qt = qDesc.filter(function (r) { return r.quarter >= '2021Q1'; });
+    var qt = qDesc.filter(function (r) { return r.quarter >= '2017Q1'; });
     var labels = qt.map(function (r) { return r.quarter; });
-    var net = qt.map(function (r) { return r.net_private_duration_dv01; });
+    var soma = qt.map(function (r) { return r.expected_soma_redemptions_dv01 || 0; });
+    var coupon = qt.map(function (r) { return r.coupon_dv01_shock || 0; });
+    var bills = qt.map(function (r) { return -(r.bill_dv01_offset || 0); });
     var buyback = qt.map(function (r) { return -(r.buyback_offset_dv01 || 0); });
+    var net = qt.map(function (r) { return r.net_private_duration_dv01; });
 
-    var barColors = net.map(function (v) { return v < 0 ? c.green : c.amber; });
-
-    instances.push(new Chart(el('netDurationChart'), {
+    instances.push(new Chart(el('durationDecompChart'), {
       type: 'bar',
       data: {
         labels: labels,
         datasets: [
-          { label: 'Net Private Duration Supply (DV01)', data: net, backgroundColor: barColors, borderRadius: 3 },
-          { label: 'Buyback Removal (DV01)', data: buyback, backgroundColor: c.purple + '80', borderRadius: 3 }
+          { label: 'Fed Runoff (SOMA)', data: soma, backgroundColor: c.red + 'B0', stack: 'stack', borderRadius: 2 },
+          { label: 'Coupon Issuance', data: coupon, backgroundColor: c.amber + 'B0', stack: 'stack', borderRadius: 2 },
+          { label: 'Bill Offset', data: bills, backgroundColor: c.blue + 'B0', stack: 'stack', borderRadius: 2 },
+          { label: 'Buyback Offset', data: buyback, backgroundColor: c.purple + 'B0', stack: 'stack', borderRadius: 2 },
+          { label: 'Net Private Duration', data: net, type: 'line', borderColor: c.text, backgroundColor: 'transparent', borderWidth: 2, pointRadius: 2, pointHoverRadius: 4, tension: 0, order: 0 }
         ]
       },
       options: {
         responsive: true, maintainAspectRatio: true, aspectRatio: 2.2,
         animation: false,
         plugins: {
-          title: { display: true, text: 'Net Private Duration Supply', color: c.text, font: { size: 14, weight: '600' }, padding: { bottom: 12 } },
-          legend: { position: 'bottom', labels: { color: c.textMuted, usePointStyle: true, padding: 16 } },
+          title: { display: true, text: 'Duration Decomposition', color: c.text, font: { size: 14, weight: '600' }, padding: { bottom: 12 } },
+          legend: { position: 'bottom', labels: { color: c.textMuted, usePointStyle: true, padding: 12, font: { size: 11 } } },
           tooltip: { callbacks: { label: function (ctx) { return ctx.dataset.label + ': ' + fmt(ctx.parsed.y, 0) + ' DV01'; } } }
         },
         scales: {
-          x: { grid: { display: false }, ticks: { color: c.textMuted, maxRotation: 45, font: { size: 10 } } },
-          y: { title: { display: true, text: 'DV01', color: c.textMuted }, grid: { color: c.grid }, ticks: { color: c.textMuted } }
+          x: { stacked: true, grid: { display: false }, ticks: { color: c.textMuted, maxRotation: 45, font: { size: 10 } } },
+          y: { stacked: true, title: { display: true, text: 'DV01', color: c.textMuted }, grid: { color: c.grid }, ticks: { color: c.textMuted } }
         }
       },
-      plugins: [{
-        id: 'zeroLine',
-        beforeDraw: function (chart) {
-          var ys = chart.scales.y, area = chart.chartArea;
-          if (!ys || !area) return;
-          var y = ys.getPixelForValue(0);
-          if (y < area.top || y > area.bottom) return;
-          var ctx = chart.ctx;
-          ctx.save();
-          ctx.strokeStyle = cwColors().textMuted;
-          ctx.lineWidth = 1;
-          ctx.setLineDash([4, 4]);
-          ctx.beginPath(); ctx.moveTo(area.left, y); ctx.lineTo(area.right, y); ctx.stroke();
-          ctx.restore();
+      plugins: [zeroLinePlugin]
+    }));
+  }
+
+  function buildOffsetScatter(qDesc) {
+    var c = cwColors();
+    var qt = qDesc.filter(function (r) {
+      return r.expected_soma_redemptions_dv01 != null && r.mix_shock_dv01 != null;
+    });
+    var clean = qt.filter(function (r) { return !r.debt_limit_flag; });
+    var debtLimit = qt.filter(function (r) { return !!r.debt_limit_flag; });
+
+    var cleanData = clean.map(function (r) { return { x: r.expected_soma_redemptions_dv01, y: r.mix_shock_dv01 }; });
+    var dlData = debtLimit.map(function (r) { return { x: r.expected_soma_redemptions_dv01, y: r.mix_shock_dv01 }; });
+
+    instances.push(new Chart(el('offsetScatterChart'), {
+      type: 'scatter',
+      data: {
+        datasets: [
+          { label: 'Clean quarters', data: cleanData, backgroundColor: c.teal + '70', borderColor: c.teal, borderWidth: 1, pointRadius: 4, pointHoverRadius: 6 },
+          { label: 'Debt-limit quarters', data: dlData, backgroundColor: c.red + '70', borderColor: c.red, borderWidth: 1, pointRadius: 5, pointHoverRadius: 7, pointStyle: 'triangle' }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: true, aspectRatio: 1.4,
+        animation: false,
+        plugins: {
+          title: { display: true, text: 'Fed Runoff vs Treasury Mix Response', color: c.text, font: { size: 14, weight: '600' }, padding: { bottom: 12 } },
+          legend: { position: 'bottom', labels: { color: c.textMuted, usePointStyle: true, padding: 16 } },
+          tooltip: { callbacks: { label: function (ctx) { return 'SOMA DV01: ' + fmt(ctx.parsed.x, 0) + '  Mix DV01: ' + fmt(ctx.parsed.y, 0); } } }
+        },
+        scales: {
+          x: { title: { display: true, text: 'Fed Runoff (SOMA Redemptions DV01)', color: c.textMuted }, grid: { color: c.grid }, ticks: { color: c.textMuted } },
+          y: { title: { display: true, text: 'Treasury Mix Shock DV01', color: c.textMuted }, grid: { color: c.grid }, ticks: { color: c.textMuted } }
         }
-      }]
+      },
+      plugins: [zeroLinePlugin]
     }));
   }
 
@@ -441,24 +483,14 @@
       cardHtml('Intermediation Channel', 'Dealer inventories and repo spreads indicate whether the system is absorbing that burden cheaply or at higher financing cost.', intermediationCards);
 
     var splitSample = qt2.filter(function (r) {
-      return r.low_liquidity != null && r.system_liquidity_bn != null && r.fed_pressure_dv01 != null;
+      return r.qt2_low_liquidity != null && r.system_liquidity_bn != null && r.fed_pressure_dv01 != null;
     });
-    var splitMethodNote = 'Weekly medians split by the project&rsquo;s low-liquidity state. This keeps the emphasis on descriptive comparisons rather than interaction coefficients.';
-    var lowStateCount = splitSample.filter(function (r) { return String(r.low_liquidity) === '1'; }).length;
-    if (!lowStateCount) {
-      var qt2Median = med(splitSample.map(function (r) { return Number(r.system_liquidity_bn); }));
-      splitSample = splitSample.map(function (r) {
-        var out = Object.assign({}, r);
-        out.low_liquidity = Number(r.system_liquidity_bn) <= qt2Median ? 1 : 0;
-        return out;
-      });
-      splitMethodNote = 'Weekly medians split at the QT2 sample median of system liquidity because the global low-liquidity flag does not separate the QT2 subsample.';
-    }
+    var splitMethodNote = 'Weekly medians split at the QT2-subsample median of system liquidity (reserves + ON RRP), computed in the pipeline.';
     var splitRows = [
       { key: '0', label: 'Higher-buffer weeks' },
       { key: '1', label: 'Lower-buffer weeks' }
     ].map(function (spec) {
-      var sub = splitSample.filter(function (r) { return String(r.low_liquidity) === spec.key; });
+      var sub = splitSample.filter(function (r) { return String(r.qt2_low_liquidity) === spec.key; });
       return {
         state: spec.label,
         weeks: sub.length,
@@ -495,9 +527,9 @@
     var higher = splitRows[0];
     insightTarget.innerHTML =
       '<strong>Channel readout:</strong> In lower-buffer QT2 weeks, median system liquidity is <strong>' + fmtBn(lower.median_system_liquidity_bn) +
-      '</strong> versus <strong>' + fmtBn(higher.median_system_liquidity_bn) + '</strong> in higher-buffer weeks, while median repo spreads move to <strong>' +
-      fmt(lower.median_repo_spread_bp, 1) + ' bp</strong> from <strong>' + fmt(higher.median_repo_spread_bp, 1) +
-      ' bp</strong>. That keeps the comparison usable even when the full-sample liquidity flag does not divide the QT2 weeks on its own.';
+      '</strong> versus <strong>' + fmtBn(higher.median_system_liquidity_bn) + '</strong> in higher-buffer weeks, while median repo spreads are <strong>' +
+      fmt(lower.median_repo_spread_bp, 1) + ' bp</strong> versus <strong>' + fmt(higher.median_repo_spread_bp, 1) +
+      ' bp</strong>.';
   }
 
   function buildCashMechanicsAppendix(rows) {
@@ -547,7 +579,7 @@
 
     summaryTarget.innerHTML =
       '<h3>Debt-Ceiling Window Summary</h3>' +
-      '<p style="margin:0 0 12px;color:var(--c-text-muted);font-size:0.9rem">Start-to-end changes over the published appendix windows. The point is mechanical separation, not causal proof.</p>' +
+      '<p style="margin:0 0 12px;color:var(--c-text-muted);font-size:0.9rem">Start-to-end changes over the published debt-ceiling windows.</p>' +
       htmlTable(
         summaryRows,
         ['window', 'start_tga_bn', 'end_tga_bn', 'delta_tga_bn', 'delta_reserves_bn', 'delta_on_rrp_bn'],
@@ -1198,7 +1230,8 @@
     buildOnRrp(d.weekly);
     buildDealer(d.weekly);
     buildRepo(d.weekly);
-    buildNetDuration(d.qDesc);
+    buildDurationDecomp(d.qDesc);
+    buildOffsetScatter(d.qDesc);
     buildOnRrpShare(d.qDesc);
     buildTga(d.weekly);
     buildCashMechanicsAppendix(d.dailyAppendix);
