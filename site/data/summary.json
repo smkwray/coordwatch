@@ -1,6 +1,6 @@
 {
   "project": "CoordWatch",
-  "generated_at_utc": "2026-04-03T17:29:53.206431+00:00",
+  "generated_at_utc": "2026-04-04T11:40:14.098029+00:00",
   "quarter_rows": 68,
   "weekly_rows": 1214,
   "runoff_source_counts": {
@@ -11,6 +11,9 @@
   "reaction_n_obs": 68,
   "weekly_frequency": "W-WED",
   "site_window_start": "2003-01-01",
+  "quarterly_window_start": "2009Q1",
+  "dealer_window_start": "2013-04-03",
+  "repo_window_start": "2018-04-04",
   "headline_reaction_terms": [
     {
       "term": "const",
@@ -70,6 +73,26 @@
       "detail": "Episode windows and selected refunding inputs use manual review files. Debt-limit periods are treated as confounded windows rather than clean policy comparisons."
     },
     {
+      "title": "Sample coverage",
+      "detail": "The public weekly site window starts in 2003, the quarterly refunding panel starts in 2009Q1, dealer series begin in 2013-04-03, and repo spread coverage begins in 2018-04-04."
+    },
+    {
+      "title": "Daily cash appendix",
+      "detail": "The debt-ceiling appendix uses the processed daily panel with ON RRP at daily frequency and H.4.1 balance-sheet fields carried forward between release dates."
+    },
+    {
+      "title": "DTS cross-check appendix",
+      "detail": "The cash appendix now includes a cross-check layer that compares Wednesday H.4.1 TGA observations to Daily Treasury Statement TGA closing balances on matching dates and adds debt-to-the-penny totals for window-level debt changes."
+    },
+    {
+      "title": "Sectoral absorber appendix",
+      "detail": "The sector appendix uses quarterly FRED Z.1 Treasury-holder series, converted from millions to billions, to track published holdings across households, banks, funds, dealers, rest of world, and residual private sectors."
+    },
+    {
+      "title": "Auction mix appendix",
+      "detail": "The auction appendix groups Treasury auction results by issue date and reports realized bill, coupon, and FRN shares plus fixed-rate coupon tenor shares."
+    },
+    {
       "title": "Interpretation",
       "detail": "Balance-sheet identities and descriptive comparisons are primary. Correlations and regressions are supplementary checks, not stand-alone proof of intent."
     }
@@ -85,12 +108,17 @@
     "correlation_matrix.json",
     "reaction_function_main.json",
     "main_lp_dealer.json",
-    "main_lp_repo.json"
+    "main_lp_repo.json",
+    "manual_input_audit.json",
+    "daily_mechanics_appendix.json",
+    "daily_validation_appendix.json",
+    "sectoral_absorbers_appendix.json",
+    "auction_mix_appendix.json"
   ],
   "artifact_hashes": [
     {
       "file": "weekly_panel.json",
-      "sha256": "d2a8826aebcbf0dcfb3875e3f3ad5f463ea3fa5728a2dfe52dde0f63e542b441",
+      "sha256": "8b44d3d1e7966a6656ede6dfdc6706e3c04ca245d8d1622eba4d268bd8cb0072",
       "size_bytes": 851709
     },
     {
@@ -135,13 +163,38 @@
     },
     {
       "file": "main_lp_dealer.json",
-      "sha256": "41be65852d3343c0ed9615806c439f4e871765275f70e1f181461061f2f1c7f2",
-      "size_bytes": 6222
+      "sha256": "bc4c291a42656ae2891537b3800f695f663f77cf32f78c5ca286ffb7f8328beb",
+      "size_bytes": 6799
     },
     {
       "file": "main_lp_repo.json",
-      "sha256": "1dc51c493f0d093ddb351cc7a93f5b4758e82c093236c3575653aff7ffe18f6c",
-      "size_bytes": 6129
+      "sha256": "b680c5f23e1404317e0ab055e8f198672c46a5025fd2898d95fca87c0fef97ff",
+      "size_bytes": 6693
+    },
+    {
+      "file": "manual_input_audit.json",
+      "sha256": "c04c9913c56ba697ea8a32c79b81e695b65718ee395960f5250ac0f78138721e",
+      "size_bytes": 36728
+    },
+    {
+      "file": "daily_mechanics_appendix.json",
+      "sha256": "5869eb339ed4fa94bd87767492328c67bb99b1590f4bbc578c0adc54fd42a61c",
+      "size_bytes": 96591
+    },
+    {
+      "file": "daily_validation_appendix.json",
+      "sha256": "38d63473f060db9be4e654a43c01eae8e992c81e1c82ff5779972dcf37922806",
+      "size_bytes": 30198
+    },
+    {
+      "file": "sectoral_absorbers_appendix.json",
+      "sha256": "21cc31622a71d6b1965ca82a488564a4828dc22db0d6337531ffffd40547d4fe",
+      "size_bytes": 61330
+    },
+    {
+      "file": "auction_mix_appendix.json",
+      "sha256": "71466f87574ac123baaf5fc4ffcbc20405433ec970dcb7ac9d1b95128df2d552",
+      "size_bytes": 69743
     }
   ]
 }

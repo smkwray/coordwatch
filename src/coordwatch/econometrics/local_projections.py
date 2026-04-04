@@ -42,13 +42,19 @@ def _estimate_single_horizon(df: pd.DataFrame, outcome: str, horizon: int, shock
             "n_obs": 0,
         }
     y = sub[f"lhs_h{horizon}"]
-    X = sm.add_constant(sub[[shock, interaction] + controls])
+    design = sub[[shock, interaction] + controls].copy()
+    dropped_terms = set()
+    for col in [shock, interaction]:
+        if col in design.columns and design[col].nunique(dropna=True) <= 1:
+            design = design.drop(columns=[col])
+            dropped_terms.add(col)
+    X = sm.add_constant(design)
     result = sm.OLS(y, X).fit(cov_type=cov_type, cov_kwds={"maxlags": hac_lags} if cov_type.upper() == "HAC" else None)
     rows = []
     for term in [shock, interaction]:
-        coef = float(result.params.get(term, float("nan")))
-        se = float(result.bse.get(term, float("nan")))
-        pv = float(result.pvalues.get(term, float("nan")))
+        coef = float("nan") if term in dropped_terms else float(result.params.get(term, float("nan")))
+        se = float("nan") if term in dropped_terms else float(result.bse.get(term, float("nan")))
+        pv = float("nan") if term in dropped_terms else float(result.pvalues.get(term, float("nan")))
         rows.append({
             "horizon": horizon,
             "outcome": outcome,
@@ -60,6 +66,7 @@ def _estimate_single_horizon(df: pd.DataFrame, outcome: str, horizon: int, shock
             "p_value": pv,
             "n_obs": int(result.nobs),
             "r_squared": float(result.rsquared),
+            "dropped_for_no_variation": term in dropped_terms,
         })
     return rows
 

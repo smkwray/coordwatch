@@ -1,15 +1,20 @@
 {
   "data_files": [
+    "auction_mix_appendix.json",
     "correlation_matrix.json",
+    "daily_mechanics_appendix.json",
+    "daily_validation_appendix.json",
     "episode_registry.json",
     "episode_summary.json",
     "main_lp_dealer.json",
     "main_lp_repo.json",
+    "manual_input_audit.json",
     "qt_comparison_summary.json",
     "quarterly_descriptive.json",
     "quarterly_panel.json",
     "reaction_function_main.json",
     "regime_summary.json",
+    "sectoral_absorbers_appendix.json",
     "summary.json",
     "weekly_panel.json"
   ]

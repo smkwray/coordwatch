@@ -13,7 +13,7 @@ if str(SRC) not in sys.path:
 import argparse
 import time
 
-from coordwatch.config import load_source_manifest
+from coordwatch.config import load_source_manifest, load_variables
 from coordwatch.logging_utils import configure_logging, get_logger
 from coordwatch.paths import RAW_DIR, ensure_repo_dirs
 from coordwatch.utils.fred import download_fred_series
@@ -28,13 +28,28 @@ logger = get_logger(__name__)
 def main() -> None:
     parser = argparse.ArgumentParser(description="Download core FRED series for CoordWatch")
     parser.add_argument("--core", action="store_true", help="Download only balance-sheet core series")
+    parser.add_argument("--sectoral", action="store_true", help="Download quarterly sectoral Treasury-holder appendix series")
     parser.add_argument("--series", nargs="*", default=None)
     args = parser.parse_args()
 
     ensure_repo_dirs()
     manifest = load_source_manifest()
+    variables = load_variables()
     base_url = manifest["fred"]["base_graph_csv"]
-    series = args.series or (CORE if args.core else ALL)
+    sectoral = [spec["series_id"] for spec in variables.get("fred_sectoral_series", {}).values()]
+    if args.series:
+        series = args.series
+    else:
+        series = []
+        if args.core:
+            series.extend(CORE)
+        elif not args.sectoral:
+            series.extend(ALL)
+        if args.sectoral:
+            series.extend(sectoral)
+        if not series:
+            series = ALL
+    series = list(dict.fromkeys(series))
     out_dir = RAW_DIR / "downloads" / "fred"
     out_dir.mkdir(parents=True, exist_ok=True)
     for i, sid in enumerate(series):

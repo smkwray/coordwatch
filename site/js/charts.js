@@ -62,12 +62,17 @@
       fetchJ('reaction_function_main'),
       fetchJ('main_lp_dealer'),
       fetchJ('main_lp_repo'),
-      fetchJ('summary')
+      fetchJ('summary'),
+      fetchJ('manual_input_audit'),
+      fetchJ('daily_mechanics_appendix'),
+      fetchJ('daily_validation_appendix'),
+      fetchJ('sectoral_absorbers_appendix'),
+      fetchJ('auction_mix_appendix')
     ]).then(function (arr) {
       return {
         weekly: arr[0], qDesc: arr[1], regime: arr[2],
         qtCompare: arr[3], episodes: arr[4], corr: arr[5], reaction: arr[6],
-        lpDealer: arr[7], lpRepo: arr[8], summary: arr[9]
+        lpDealer: arr[7], lpRepo: arr[8], summary: arr[9], manualAudit: arr[10], dailyAppendix: arr[11], dailyValidation: arr[12], sectoralAppendix: arr[13], auctionMixAppendix: arr[14]
       };
     });
   }
@@ -343,6 +348,527 @@
     }));
   }
 
+  function pctChange(current, start) {
+    if (current == null || start == null || isNaN(current) || isNaN(start) || Number(start) === 0) return '\u2014';
+    var pct = ((Number(current) / Number(start)) - 1) * 100;
+    var sign = pct > 0 ? '+' : '';
+    return sign + fmt(pct, 1) + '%';
+  }
+
+  function fmtSignedBn(v) {
+    if (v == null || isNaN(v)) return '\u2014';
+    var n = Number(v);
+    var sign = n > 0 ? '+' : '';
+    return sign + fmt(n, 1) + 'B';
+  }
+
+  function fmtPct(v) {
+    if (v == null || isNaN(v)) return '\u2014';
+    return fmt(Number(v) * 100, 1) + '%';
+  }
+
+  function fmtSignedPp(v) {
+    if (v == null || isNaN(v)) return '\u2014';
+    var n = Number(v);
+    var sign = n > 0 ? '+' : '';
+    return sign + fmt(n, 1) + ' pp';
+  }
+
+  function fmtSignedAmt(v) {
+    if (v == null || isNaN(v)) return '\u2014';
+    var n = Number(v);
+    var sign = n > 0 ? '+' : '';
+    var abs = Math.abs(n);
+    var shown = abs >= 1000 ? fmtBn(abs) : ('$' + fmt(abs, 1) + 'B');
+    return sign + shown;
+  }
+
+  function med(arr) {
+    if (!arr || !arr.length) return null;
+    var vals = arr.slice().filter(function (v) { return v != null && !isNaN(v); }).sort(function (a, b) { return a - b; });
+    if (!vals.length) return null;
+    var mid = Math.floor(vals.length / 2);
+    return vals.length % 2 ? vals[mid] : (vals[mid - 1] + vals[mid]) / 2;
+  }
+
+  function buildChannelDashboard(weekly) {
+    var cardsTarget = el('channelCards');
+    var splitTarget = el('bufferSplitTable');
+    var insightTarget = el('channelInsight');
+    if (!cardsTarget || !splitTarget || !insightTarget || !weekly || !weekly.length) return;
+
+    var qt2 = weekly.filter(function (r) {
+      return r.week >= '2022-06-01' && r.system_liquidity_bn != null;
+    });
+    if (!qt2.length) return;
+
+    var latest = qt2[qt2.length - 1];
+    var start = qt2[0];
+    var withDealers = qt2.filter(function (r) { return r.dealer_inventory_bn != null; });
+    var recent13 = qt2.slice(Math.max(qt2.length - 13, 0));
+    var cumulativeRunoff = qt2.reduce(function (sum, row) {
+      return sum + (Number(row.qt_runoff_dv01) || 0);
+    }, 0);
+    var reserveCards = [
+      ['System liquidity', fmtBn(latest.system_liquidity_bn)],
+      ['Change since QT2 start', pctChange(latest.system_liquidity_bn, start.system_liquidity_bn)],
+      ['ON RRP latest', fmtBn(latest.on_rrp_bn)]
+    ];
+    var durationCards = [
+      ['Duration pressure', fmt(latest.duration_pressure_dv01, 1) + ' DV01'],
+      ['Bills offset', fmt(latest.bill_dv01_offset, 1) + ' DV01'],
+      ['Cum QT runoff', fmt(cumulativeRunoff, 1) + ' DV01']
+    ];
+    var intermediationCards = [
+      ['Dealer inventory', latest.dealer_inventory_bn != null ? fmtBn(latest.dealer_inventory_bn) : '\u2014'],
+      ['Dealer change since QT2 start', withDealers.length ? pctChange(withDealers[withDealers.length - 1].dealer_inventory_bn, withDealers[0].dealer_inventory_bn) : '\u2014'],
+      ['Repo spread, 13w median', med(recent13.map(function (r) { return r.repo_spread_bp; })) != null ? fmt(med(recent13.map(function (r) { return r.repo_spread_bp; })), 0) + ' bp' : '\u2014']
+    ];
+
+    function cardHtml(title, body, metrics) {
+      return '<div class="channel-card">' +
+        '<h3>' + title + '</h3>' +
+        '<p>' + body + '</p>' +
+        metrics.map(function (item) {
+          return '<div class="channel-metric"><span>' + item[0] + '</span><strong>' + item[1] + '</strong></div>';
+        }).join('') +
+        '</div>';
+    }
+
+    cardsTarget.innerHTML =
+      cardHtml('Reserve Channel', 'Reserves plus ON RRP capture the balance-sheet buffer available before drainage shows up more forcefully in markets.', reserveCards) +
+      cardHtml('Duration Channel', 'QT runoff, coupon issuance, bills, and buybacks determine how much duration burden is pushed toward private holders.', durationCards) +
+      cardHtml('Intermediation Channel', 'Dealer inventories and repo spreads indicate whether the system is absorbing that burden cheaply or at higher financing cost.', intermediationCards);
+
+    var splitSample = qt2.filter(function (r) {
+      return r.low_liquidity != null && r.system_liquidity_bn != null && r.fed_pressure_dv01 != null;
+    });
+    var splitMethodNote = 'Weekly medians split by the project&rsquo;s low-liquidity state. This keeps the emphasis on descriptive comparisons rather than interaction coefficients.';
+    var lowStateCount = splitSample.filter(function (r) { return String(r.low_liquidity) === '1'; }).length;
+    if (!lowStateCount) {
+      var qt2Median = med(splitSample.map(function (r) { return Number(r.system_liquidity_bn); }));
+      splitSample = splitSample.map(function (r) {
+        var out = Object.assign({}, r);
+        out.low_liquidity = Number(r.system_liquidity_bn) <= qt2Median ? 1 : 0;
+        return out;
+      });
+      splitMethodNote = 'Weekly medians split at the QT2 sample median of system liquidity because the global low-liquidity flag does not separate the QT2 subsample.';
+    }
+    var splitRows = [
+      { key: '0', label: 'Higher-buffer weeks' },
+      { key: '1', label: 'Lower-buffer weeks' }
+    ].map(function (spec) {
+      var sub = splitSample.filter(function (r) { return String(r.low_liquidity) === spec.key; });
+      return {
+        state: spec.label,
+        weeks: sub.length,
+        median_system_liquidity_bn: med(sub.map(function (r) { return Number(r.system_liquidity_bn); })),
+        median_fed_pressure_dv01: med(sub.map(function (r) { return Number(r.fed_pressure_dv01); })),
+        median_dealer_inventory_bn: med(sub.map(function (r) { return r.dealer_inventory_bn == null ? null : Number(r.dealer_inventory_bn); })),
+        median_repo_spread_bp: med(sub.map(function (r) { return r.repo_spread_bp == null ? null : Number(r.repo_spread_bp); }))
+      };
+    });
+
+    splitTarget.innerHTML =
+      '<h3>QT2 State Split</h3>' +
+      '<p style="margin:0 0 12px;color:var(--c-text-muted);font-size:0.9rem">' + splitMethodNote + '</p>' +
+      htmlTable(
+        splitRows,
+        ['state', 'weeks', 'median_system_liquidity_bn', 'median_fed_pressure_dv01', 'median_dealer_inventory_bn', 'median_repo_spread_bp'],
+        {
+          median_system_liquidity_bn: fmtBn,
+          median_fed_pressure_dv01: function (v) { return fmt(v, 1) + ' DV01'; },
+          median_dealer_inventory_bn: fmtBn,
+          median_repo_spread_bp: function (v) { return fmt(v, 1) + ' bp'; }
+        },
+        {
+          state: 'State',
+          weeks: 'Weeks',
+          median_system_liquidity_bn: 'Median Buffer',
+          median_fed_pressure_dv01: 'Median Fed Pressure',
+          median_dealer_inventory_bn: 'Median Dealers',
+          median_repo_spread_bp: 'Median Repo Spread'
+        }
+      );
+
+    var lower = splitRows[1];
+    var higher = splitRows[0];
+    insightTarget.innerHTML =
+      '<strong>Channel readout:</strong> In lower-buffer QT2 weeks, median system liquidity is <strong>' + fmtBn(lower.median_system_liquidity_bn) +
+      '</strong> versus <strong>' + fmtBn(higher.median_system_liquidity_bn) + '</strong> in higher-buffer weeks, while median repo spreads move to <strong>' +
+      fmt(lower.median_repo_spread_bp, 1) + ' bp</strong> from <strong>' + fmt(higher.median_repo_spread_bp, 1) +
+      ' bp</strong>. That keeps the comparison usable even when the full-sample liquidity flag does not divide the QT2 weeks on its own.';
+  }
+
+  function buildCashMechanicsAppendix(rows) {
+    var chart2023 = el('cash2023Chart');
+    var chart2025 = el('cash2025Chart');
+    var summaryTarget = el('cashSummaryTable');
+    var insightTarget = el('cashInsight');
+    if (!chart2023 || !chart2025 || !summaryTarget || !insightTarget || !rows || !rows.length) return;
+
+    function drawWindow(canvasEl, windowId, title) {
+      var c = cwColors();
+      var sub = rows.filter(function (r) { return r.window_id === windowId; });
+      if (!sub.length) return null;
+      instances.push(new Chart(canvasEl, {
+        type: 'line',
+        data: {
+          datasets: [
+            tsDataset('TGA', sub.map(function (r) { return { x: r.week, y: r.tga_bn }; }), c.red),
+            tsDataset('Reserves', sub.map(function (r) { return { x: r.week, y: r.reserves_bn }; }), c.teal),
+            tsDataset('ON RRP', sub.map(function (r) { return { x: r.week, y: r.on_rrp_bn }; }), c.blue)
+          ]
+        },
+        options: tsOpts(title, '$ billions', fmtBn)
+      }));
+      return sub;
+    }
+
+    var win2023 = drawWindow(chart2023, 'debt_ceiling_2023', '2023 Debt-Ceiling Window');
+    var win2025 = drawWindow(chart2025, 'debt_ceiling_2025', '2025 Debt-Ceiling Window');
+    var windows = [
+      { label: '2023 debt ceiling', rows: win2023 },
+      { label: '2025 debt ceiling', rows: win2025 }
+    ].filter(function (w) { return w.rows && w.rows.length; });
+
+    var summaryRows = windows.map(function (w) {
+      var first = w.rows[0];
+      var last = w.rows[w.rows.length - 1];
+      return {
+        window: w.label,
+        start_tga_bn: Number(first.tga_bn),
+        end_tga_bn: Number(last.tga_bn),
+        delta_tga_bn: Number(last.tga_bn) - Number(first.tga_bn),
+        delta_reserves_bn: Number(last.reserves_bn) - Number(first.reserves_bn),
+        delta_on_rrp_bn: Number(last.on_rrp_bn) - Number(first.on_rrp_bn)
+      };
+    });
+
+    summaryTarget.innerHTML =
+      '<h3>Debt-Ceiling Window Summary</h3>' +
+      '<p style="margin:0 0 12px;color:var(--c-text-muted);font-size:0.9rem">Start-to-end changes over the published appendix windows. The point is mechanical separation, not causal proof.</p>' +
+      htmlTable(
+        summaryRows,
+        ['window', 'start_tga_bn', 'end_tga_bn', 'delta_tga_bn', 'delta_reserves_bn', 'delta_on_rrp_bn'],
+        {
+          start_tga_bn: fmtBn,
+          end_tga_bn: fmtBn,
+          delta_tga_bn: fmtSignedBn,
+          delta_reserves_bn: fmtSignedBn,
+          delta_on_rrp_bn: fmtSignedBn
+        },
+        {
+          window: 'Window',
+          start_tga_bn: 'Start TGA',
+          end_tga_bn: 'End TGA',
+          delta_tga_bn: 'TGA Change',
+          delta_reserves_bn: 'Reserves Change',
+          delta_on_rrp_bn: 'ON RRP Change'
+        }
+      );
+
+    if (summaryRows.length >= 2) {
+      insightTarget.innerHTML =
+        '<strong>Cash-mechanics readout:</strong> In the 2023 window, TGA moved <strong>' + fmtSignedBn(summaryRows[0].delta_tga_bn) +
+        '</strong> while ON RRP moved <strong>' + fmtSignedBn(summaryRows[0].delta_on_rrp_bn) +
+        '</strong>. In the 2025 window, TGA moved <strong>' + fmtSignedBn(summaryRows[1].delta_tga_bn) +
+        '</strong> while ON RRP moved <strong>' + fmtSignedBn(summaryRows[1].delta_on_rrp_bn) +
+        '</strong>. That is the appendix’s job: show when cash-balance shifts and money-market buffer shifts are doing work that should not be misread as pure QT reserve drain.';
+    }
+  }
+
+  function buildCashValidationAppendix(validation) {
+    var target = el('cashValidationTable');
+    if (!target || !validation) return;
+    if (!validation.summary || !validation.summary.length) {
+      target.innerHTML =
+        '<h3>DTS And Debt Cross-Check</h3>' +
+        '<p style="margin:0 0 12px;color:var(--c-text-muted);font-size:0.9rem">' +
+        ((validation.metadata && validation.metadata.notes && validation.metadata.notes[validation.metadata.notes.length - 1]) || 'Validation data unavailable.') +
+        '</p>';
+      return;
+    }
+
+    var rows = validation.summary.map(function (row) {
+      return {
+        window: row.window.replace(/_/g, ' '),
+        matched_days: row.matched_days,
+        mean_abs_gap_bn: row.mean_abs_gap_bn,
+        max_abs_gap_bn: row.max_abs_gap_bn,
+        end_gap_bn: row.end_gap_bn,
+        debt_change_bn: row.debt_change_bn
+      };
+    });
+    target.innerHTML =
+      '<h3>DTS And Debt Cross-Check</h3>' +
+      '<p style="margin:0 0 12px;color:var(--c-text-muted);font-size:0.9rem">This cross-check uses matching Wednesday observations where the H.4.1 TGA series and the Daily Treasury Statement can be compared directly. Non-zero gaps are expected because the two releases are not identical measures.</p>' +
+      htmlTable(
+        rows,
+        ['window', 'matched_days', 'mean_abs_gap_bn', 'max_abs_gap_bn', 'end_gap_bn', 'debt_change_bn'],
+        {
+          mean_abs_gap_bn: fmtBn,
+          max_abs_gap_bn: fmtBn,
+          end_gap_bn: fmtSignedAmt,
+          debt_change_bn: fmtSignedAmt
+        },
+        {
+          window: 'Window',
+          matched_days: 'Matched Wednesdays',
+          mean_abs_gap_bn: 'Mean Abs TGA Gap',
+          max_abs_gap_bn: 'Max Abs TGA Gap',
+          end_gap_bn: 'End-Date Gap',
+          debt_change_bn: 'Debt Change'
+        }
+      );
+  }
+
+  function buildSectoralAbsorbersAppendix(appendix) {
+    var levelTarget = el('sectorLevelsChart');
+    var shareTarget = el('sectorSharesChart');
+    var tableTarget = el('sectorSummaryTable');
+    var insightTarget = el('sectorInsight');
+    if (!levelTarget || !shareTarget || !tableTarget || !insightTarget || !appendix || !appendix.series || !appendix.series.length) return;
+
+    var c = cwColors();
+    var series = appendix.series.filter(function (row) { return row.quarter >= '2009Q1'; });
+    var modern = series.filter(function (row) { return row.quarter >= '2022Q2'; });
+    var colorMap = {
+      rest_of_world: c.blue,
+      households_nonprofits: c.teal,
+      us_chartered_depositories: c.amber,
+      money_market_funds: c.green,
+      mutual_funds: c.purple,
+      broker_dealers: c.red,
+      other_private_sectors: '#64748b'
+    };
+    var sectors = appendix.sectors || [];
+
+    instances.push(new Chart(levelTarget, {
+      type: 'line',
+      data: {
+        labels: series.map(function (row) { return row.quarter; }),
+        datasets: sectors.map(function (sector) {
+          return tsDataset(
+            sector.label,
+            series.map(function (row) { return row[sector.key]; }),
+            colorMap[sector.key] || c.textMuted
+          );
+        })
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 1.8,
+        animation: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { color: c.textMuted, usePointStyle: true, padding: 12 } },
+          title: { display: true, text: 'Published Private Treasury Holders', color: c.text, font: { size: 14, weight: '600' }, padding: { bottom: 12 } },
+          tooltip: { callbacks: { label: function (ctx) { return ctx.dataset.label + ': ' + fmtBn(ctx.parsed.y); } } }
+        },
+        scales: {
+          x: { type: 'category', grid: { display: false }, ticks: { color: c.textMuted, maxTicksLimit: 8 } },
+          y: { title: { display: true, text: '$ billions', color: c.textMuted }, grid: { color: c.grid }, ticks: { color: c.textMuted, callback: fmtBn } }
+        }
+      }
+    }));
+
+    instances.push(new Chart(shareTarget, {
+      type: 'bar',
+      data: {
+        labels: modern.map(function (row) { return row.quarter; }),
+        datasets: sectors.map(function (sector) {
+          return {
+            label: sector.label,
+            data: modern.map(function (row) { return Number(row[sector.key + '_share']) * 100; }),
+            backgroundColor: colorMap[sector.key] || c.textMuted,
+            borderWidth: 0
+          };
+        })
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 1.8,
+        animation: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { color: c.textMuted, usePointStyle: true, padding: 12 } },
+          title: { display: true, text: 'Holder Shares Since QT2 Start', color: c.text, font: { size: 14, weight: '600' }, padding: { bottom: 12 } },
+          tooltip: { callbacks: { label: function (ctx) { return ctx.dataset.label + ': ' + fmt(ctx.parsed.y, 1) + '%'; } } }
+        },
+        scales: {
+          x: { stacked: true, grid: { display: false }, ticks: { color: c.textMuted, maxRotation: 45, font: { size: 10 } } },
+          y: { stacked: true, title: { display: true, text: '% of published private holdings', color: c.textMuted }, grid: { color: c.grid }, ticks: { color: c.textMuted, callback: function (v) { return v + '%'; } }, max: 100 }
+        }
+      }
+    }));
+
+    tableTarget.innerHTML =
+      '<h3>Latest Quarter Sector Summary</h3>' +
+      '<p style="margin:0 0 12px;color:var(--c-text-muted);font-size:0.9rem">Quarter-end levels and changes since the QT2 start quarter in the appendix.</p>' +
+      htmlTable(
+        appendix.summary,
+        ['sector', 'latest_level_bn', 'latest_share', 'change_since_qt2_bn'],
+        {
+          latest_level_bn: fmtBn,
+          latest_share: fmtPct,
+          change_since_qt2_bn: fmtSignedBn
+        },
+        {
+          sector: 'Sector',
+          latest_level_bn: 'Latest Level',
+          latest_share: 'Latest Share',
+          change_since_qt2_bn: 'Change Since QT2 Start'
+        }
+      );
+
+    var latest = appendix.summary.slice().sort(function (a, b) { return Number(b.latest_share || 0) - Number(a.latest_share || 0); })[0];
+    var largestIncrease = appendix.summary.slice().sort(function (a, b) { return Number(b.change_since_qt2_bn || -Infinity) - Number(a.change_since_qt2_bn || -Infinity); })[0];
+    if (latest && largestIncrease) {
+      insightTarget.innerHTML =
+        '<strong>Sectoral readout:</strong> In <strong>' + appendix.metadata.latest_quarter + '</strong>, the largest published holder in this appendix is <strong>' +
+        latest.sector + '</strong> at <strong>' + fmtPct(latest.latest_share) + '</strong> of private holdings. Since <strong>' +
+        appendix.metadata.qt2_start_quarter + '</strong>, the biggest level increase is <strong>' + largestIncrease.sector +
+        '</strong> at <strong>' + fmtSignedBn(largestIncrease.change_since_qt2_bn) + '</strong>, which is the cleanest sector-level companion to the dealer and cash-mechanics views.';
+    }
+  }
+
+  function buildAuctionMixAppendix(appendix) {
+    var mixTarget = el('auctionMixChart');
+    var tenorTarget = el('auctionTenorChart');
+    var summaryTarget = el('auctionSummaryTable');
+    var tenorTableTarget = el('auctionTenorTable');
+    var insightTarget = el('auctionInsight');
+    if (!mixTarget || !tenorTarget || !summaryTarget || !tenorTableTarget || !insightTarget || !appendix || !appendix.series || !appendix.series.length) return;
+
+    var c = cwColors();
+    var series = appendix.series.filter(function (row) { return row.quarter >= '2009Q1'; });
+    var qt2 = series.filter(function (row) { return row.quarter >= '2022Q2'; });
+    var shareLabels = series.map(function (row) { return row.quarter; });
+    var tenorLabels = qt2.map(function (row) { return row.quarter; });
+    var tenorKeys = [
+      ['coupon_2y_bn_share', '2y', c.blue],
+      ['coupon_3y_bn_share', '3y', c.teal],
+      ['coupon_5y_bn_share', '5y', c.green],
+      ['coupon_7y_bn_share', '7y', c.amber],
+      ['coupon_10y_bn_share', '10y', c.red],
+      ['coupon_20y_bn_share', '20y', c.purple],
+      ['coupon_30y_bn_share', '30y', '#64748b']
+    ];
+
+    instances.push(new Chart(mixTarget, {
+      type: 'line',
+      data: {
+        labels: shareLabels,
+        datasets: [
+          { label: 'Bills', data: series.map(function (row) { return Number(row.bill_share) * 100; }), borderColor: c.blue, backgroundColor: c.blue + '18', borderWidth: 2, pointRadius: 0, fill: false, tension: 0 },
+          { label: 'Coupons', data: series.map(function (row) { return Number(row.coupon_share) * 100; }), borderColor: c.teal, backgroundColor: c.teal + '18', borderWidth: 2, pointRadius: 0, fill: false, tension: 0 },
+          { label: 'FRNs', data: series.map(function (row) { return Number(row.frn_share) * 100; }), borderColor: c.amber, backgroundColor: c.amber + '18', borderWidth: 2, pointRadius: 0, fill: false, tension: 0 }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 1.8,
+        animation: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { color: c.textMuted, usePointStyle: true, padding: 12 } },
+          title: { display: true, text: 'Realized Issuance Shares', color: c.text, font: { size: 14, weight: '600' }, padding: { bottom: 12 } },
+          tooltip: { callbacks: { label: function (ctx) { return ctx.dataset.label + ': ' + fmt(ctx.parsed.y, 1) + '%'; } } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: c.textMuted, maxTicksLimit: 8 } },
+          y: { title: { display: true, text: '% of quarterly auction amount', color: c.textMuted }, grid: { color: c.grid }, ticks: { color: c.textMuted, callback: function (v) { return v + '%'; } }, min: 0, max: 100 }
+        }
+      }
+    }));
+
+    instances.push(new Chart(tenorTarget, {
+      type: 'bar',
+      data: {
+        labels: tenorLabels,
+        datasets: tenorKeys.map(function (spec) {
+          return {
+            label: spec[1],
+            data: qt2.map(function (row) { return Number(row[spec[0]] || 0) * 100; }),
+            backgroundColor: spec[2],
+            borderWidth: 0
+          };
+        })
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 1.8,
+        animation: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { color: c.textMuted, usePointStyle: true, padding: 12 } },
+          title: { display: true, text: 'Fixed-Rate Coupon Tenor Shares Since QT2 Start', color: c.text, font: { size: 14, weight: '600' }, padding: { bottom: 12 } },
+          tooltip: { callbacks: { label: function (ctx) { return ctx.dataset.label + ': ' + fmt(ctx.parsed.y, 1) + '%'; } } }
+        },
+        scales: {
+          x: { stacked: true, grid: { display: false }, ticks: { color: c.textMuted, maxRotation: 45, font: { size: 10 } } },
+          y: { stacked: true, title: { display: true, text: '% of fixed-rate coupon issuance', color: c.textMuted }, grid: { color: c.grid }, ticks: { color: c.textMuted, callback: function (v) { return v + '%'; } }, min: 0, max: 100 }
+        }
+      }
+    }));
+
+    var mixSummaryRows = appendix.summary.map(function (row) {
+      return {
+        metric: row.metric,
+        latest_level: row.metric === 'Coupon WAM'
+          ? (row.latest_amount_bn == null || isNaN(row.latest_amount_bn) ? '\u2014' : fmt(row.latest_amount_bn, 2) + ' years')
+          : fmtBn(row.latest_amount_bn),
+        latest_share: row.metric === 'Coupon WAM' ? '\u2014' : fmtPct(row.latest_share),
+        change_since_qt2: row.metric === 'Coupon WAM'
+          ? (row.change_since_qt2_share_pp == null || isNaN(row.change_since_qt2_share_pp) ? '\u2014' : fmt(row.change_since_qt2_share_pp, 2) + ' years')
+          : fmtSignedPp(row.change_since_qt2_share_pp)
+      };
+    });
+
+    summaryTarget.innerHTML =
+      '<h3>Latest Quarter Mix Summary</h3>' +
+      '<p style="margin:0 0 12px;color:var(--c-text-muted);font-size:0.9rem">Realized quarterly issuance shares grouped by settlement quarter.</p>' +
+      htmlTable(
+        mixSummaryRows,
+        ['metric', 'latest_level', 'latest_share', 'change_since_qt2'],
+        null,
+        {
+          metric: 'Metric',
+          latest_level: 'Latest Level',
+          latest_share: 'Latest Share',
+          change_since_qt2: 'Change Since QT2 Start'
+        }
+      );
+
+    tenorTableTarget.innerHTML =
+      '<h3>Latest Quarter Coupon Tenor Split</h3>' +
+      htmlTable(
+        appendix.tenor_summary,
+        ['tenor', 'latest_amount_bn', 'latest_share'],
+        {
+          latest_amount_bn: fmtBn,
+          latest_share: fmtPct
+        },
+        {
+          tenor: 'Tenor',
+          latest_amount_bn: 'Latest Amount',
+          latest_share: 'Share Of Coupons'
+        }
+      );
+
+    var latest = series[series.length - 1];
+    var qt2Start = qt2.length ? qt2[0] : series[0];
+    var largestTenor = appendix.tenor_summary.slice().sort(function (a, b) { return Number(b.latest_share || 0) - Number(a.latest_share || 0); })[0];
+    if (latest && qt2Start && largestTenor) {
+      insightTarget.innerHTML =
+        '<strong>Auction-mix readout:</strong> In <strong>' + appendix.metadata.latest_quarter + '</strong>, bills accounted for <strong>' + fmtPct(latest.bill_share) +
+        '</strong> of realized issuance versus <strong>' + fmtPct(qt2Start.bill_share) + '</strong> in <strong>' + appendix.metadata.qt2_start_quarter +
+        '</strong>. The largest fixed-rate coupon bucket in the latest quarter is <strong>' + largestTenor.tenor + '</strong> at <strong>' + fmtPct(largestTenor.latest_share) +
+        '</strong> of coupon issuance. This gives the site a realized mix panel alongside the refunding-guidance and duration-shock measures.';
+    }
+  }
+
   /* ================================================================
      Table builders
      ================================================================ */
@@ -449,8 +975,10 @@
 
   function buildReactionTable(data) {
     var target = el('reactionTable');
-    if (!target) return;
+    if (!target || !data || !data.length) return;
     var cols = ['term', 'coef', 'std_err', 'p_value'];
+    var nObs = data[0].n_obs;
+    var rSquared = data[0].r_squared;
     var fmters = {
       coef: function (v) { return Number(v).toFixed(4); },
       std_err: function (v) { return Number(v).toFixed(4); },
@@ -460,7 +988,10 @@
         return p.toFixed(4) + star;
       }
     };
-    target.innerHTML = '<h3>Treasury Reaction Function (OLS, HC3)</h3>' + htmlTable(data, cols, fmters);
+    target.innerHTML =
+      '<h3>Treasury Reaction Function (OLS, HC3)</h3>' +
+      '<p style="margin:0 0 12px;color:var(--c-text-muted);font-size:0.9rem">Quarterly sample: <strong>' + fmt(nObs, 0) + '</strong> observations. Model fit: <strong>R\u00b2 ' + fmt(rSquared, 2) + '</strong>.</p>' +
+      htmlTable(data, cols, fmters);
   }
 
   function buildLpTable(data, targetId, title) {
@@ -473,12 +1004,17 @@
       return out;
     });
     var cols = ['horizon', 'term', 'coef', 'ci_lo', 'ci_hi'];
+    var nObs = rows[0].n_obs;
+    var rSquared = rows[0].r_squared;
     var fmters = {
       coef: function (v) { return Number(v).toFixed(4); },
       ci_lo: function (v) { return Number(v).toFixed(4); },
       ci_hi: function (v) { return Number(v).toFixed(4); }
     };
-    target.innerHTML = '<h3>' + title + '</h3>' + htmlTable(rows, cols, fmters);
+    target.innerHTML =
+      '<h3>' + title + '</h3>' +
+      '<p style="margin:0 0 12px;color:var(--c-text-muted);font-size:0.9rem">Weekly sample: <strong>' + fmt(nObs, 0) + '</strong> observations at horizon 0. Baseline fit at horizon 0: <strong>R\u00b2 ' + fmt(rSquared, 2) + '</strong>.</p>' +
+      htmlTable(rows, cols, fmters);
   }
 
   function buildMeasurementNotes(summary) {
@@ -508,9 +1044,59 @@
         '<h3 class="note-card-title">Build Metadata</h3>' +
         '<div class="meta-block"><strong>Generated</strong><p>' + generated + '</p></div>' +
         '<div class="meta-block"><strong>Public window</strong><p>' + (summary.site_window_start || '\u2014') + ' onward, ' + (summary.weekly_frequency || '\u2014') + ' sampling</p></div>' +
+        '<div class="meta-block"><strong>Coverage</strong><p>Quarterly panel: ' + (summary.quarterly_window_start || '\u2014') + '. Dealer series: ' + (summary.dealer_window_start || '\u2014') + '. Repo spread: ' + (summary.repo_window_start || '\u2014') + '.</p></div>' +
         '<div class="meta-block"><strong>Runoff coverage</strong><table class="artifact-table"><tbody>' + runoffRows + '</tbody></table></div>' +
         '<div class="meta-block"><strong>Artifact hashes</strong><table class="artifact-table"><tbody>' + hashRows + '</tbody></table></div>';
     }
+  }
+
+  function buildManualAuditAppendix(audit) {
+    var target = el('manualAuditAppendix');
+    if (!target || !audit) return;
+
+    var summary = audit.summary || {};
+    var rows = audit.rows || [];
+    var chips = [
+      { value: summary.manual_quarter_rows, label: 'Manual quarter rows' },
+      { value: summary.verified_rows, label: 'Verified rows' },
+      { value: summary.debt_limit_rows, label: 'Debt-limit rows' },
+      { value: summary.cash_balance_statement_sourced_rows, label: 'Cash-balance rows sourced from statement text' }
+    ];
+    var chipsHtml = chips.map(function (chip) {
+      return '<div class="provenance-chip"><strong>' + fmt(chip.value, 0) + '</strong><span>' + chip.label + '</span></div>';
+    }).join('');
+
+    var notes = summary.workflow_notes || [];
+    var notesHtml = notes.length
+      ? '<ul class="provenance-list">' + notes.map(function (note) { return '<li>' + note + '</li>'; }).join('') + '</ul>'
+      : '';
+
+    var tableRows = rows.map(function (row) {
+      return {
+        quarter: row.quarter,
+        refunding_date: row.refunding_date,
+        verification_status: row.verification_status,
+        debt_limit_flag: Number(row.debt_limit_flag) === 1 ? 'Yes' : 'No',
+        statement_url: row.statement_url ? '<a href="' + row.statement_url + '" target="_blank" rel="noopener noreferrer">Source</a>' : '\u2014',
+        reviewer_notes: row.reviewer_notes || '\u2014'
+      };
+    });
+
+    var colLabels = {
+      quarter: 'Quarter',
+      refunding_date: 'Date',
+      verification_status: 'Status',
+      debt_limit_flag: 'Debt Limit',
+      statement_url: 'Statement',
+      reviewer_notes: 'Review Notes'
+    };
+
+    target.innerHTML =
+      '<h3 class="note-card-title">Manual Input Provenance</h3>' +
+      '<p style="margin:0 0 12px;color:var(--c-text-muted);font-size:0.9rem">Quarterly refunding inputs still include hand-reviewed source verification. This appendix shows the public provenance fields carried from the manual overrides file.</p>' +
+      '<div class="provenance-summary">' + chipsHtml + '</div>' +
+      notesHtml +
+      '<div class="provenance-table">' + htmlTable(tableRows, ['quarter', 'refunding_date', 'verification_status', 'debt_limit_flag', 'statement_url', 'reviewer_notes'], null, colLabels) + '</div>';
   }
 
   function corrLookup(matrix, rowKey, colKey) {
@@ -615,6 +1201,11 @@
     buildNetDuration(d.qDesc);
     buildOnRrpShare(d.qDesc);
     buildTga(d.weekly);
+    buildCashMechanicsAppendix(d.dailyAppendix);
+    buildCashValidationAppendix(d.dailyValidation);
+    buildSectoralAbsorbersAppendix(d.sectoralAppendix);
+    buildAuctionMixAppendix(d.auctionMixAppendix);
+    buildChannelDashboard(d.weekly);
 
     buildRegimeTable(d.regime);
     buildQtCompareTable(d.qtCompare);
@@ -625,6 +1216,7 @@
     buildLpTable(d.lpRepo, 'lpRepoTable', 'Local Projection: Repo Spread');
     buildInsights(d.weekly, d.qDesc, d.corr);
     buildMeasurementNotes(d.summary);
+    buildManualAuditAppendix(d.manualAudit);
   }
 
   window.cwRebuildCharts = function () {

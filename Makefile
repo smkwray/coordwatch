@@ -15,12 +15,13 @@ demo-data:
 	$(PYTHON) scripts/17_build_demo_seed.py
 
 download:
-	$(PYTHON) scripts/01_download_fred.py --core
+	$(PYTHON) scripts/01_download_fred.py --core --sectoral
 	$(PYTHON) scripts/02_download_treasury_refunding.py --download-files
 	$(PYTHON) scripts/03_download_treasury_financing.py --download-files
 	$(PYTHON) scripts/04_download_buybacks.py --download-files
 	$(PYTHON) scripts/05_download_primary_dealer.py --series PDPOSGST-TOT PDSORA-UTSETTOT PDSIRRA-UTSETTOT
 	$(PYTHON) scripts/06_download_rates_and_repo.py
+	$(PYTHON) scripts/22_download_daily_cash_debt.py
 
 extract:
 	$(PYTHON) scripts/07_build_refunding_statement_index.py

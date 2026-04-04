@@ -47,10 +47,19 @@ def download_fred_series(series_id: str, base_url: str, out_path: Path) -> pd.Da
         df = pd.read_csv(out_path)
         rename = {c: c.strip() for c in df.columns}
         df = df.rename(columns=rename)
+        if "observation_date" in df.columns and "DATE" not in df.columns:
+            df = df.rename(columns={"observation_date": "DATE"})
+        if "VALUE" not in df.columns:
+            value_cols = [c for c in df.columns if c != "DATE"]
+            if len(value_cols) == 1:
+                df = df.rename(columns={value_cols[0]: "VALUE"})
+        if "DATE" in df.columns and "VALUE" in df.columns:
+            df = df[["DATE", "VALUE"]].copy()
         if "DATE" in df.columns:
             df["DATE"] = pd.to_datetime(df["DATE"], errors="coerce")
         if "VALUE" in df.columns:
             df["VALUE"] = pd.to_numeric(df["VALUE"].replace(".", pd.NA), errors="coerce")
+        df.to_csv(out_path, index=False)
         return df
     except Exception:
         # Fall back to FRED API if available

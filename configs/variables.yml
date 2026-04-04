@@ -12,6 +12,29 @@ fred_core_series:
   DGS20: treasury_constant_maturity_20y
   DGS30: treasury_constant_maturity_30y
 
+fred_sectoral_series:
+  all_private_treasuries:
+    series_id: BOGZ1FL893061105Q
+    label: All private sectors
+  money_market_funds:
+    series_id: BOGZ1FL633061105Q
+    label: Money market funds
+  mutual_funds:
+    series_id: BOGZ1LM653061105Q
+    label: Mutual funds
+  broker_dealers:
+    series_id: BOGZ1FL663061105Q
+    label: Brokers and dealers
+  households_nonprofits:
+    series_id: BOGZ1LM153061105Q
+    label: Households and nonprofits
+  rest_of_world:
+    series_id: BOGZ1LM263061105Q
+    label: Rest of world
+  us_chartered_depositories:
+    series_id: BOGZ1LM763061100Q
+    label: U.S.-chartered depositories
+
 quarter_variables:
   privately_held_net_marketable_borrowing_bn: Treasury financing need control
   cash_balance_assumption_bn: TGA target assumed in Treasury statement

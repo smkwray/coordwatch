@@ -2,7 +2,7 @@
 
 **[Live site](https://smkwray.github.io/coordwatch/)**
 
-Tracking how Fed runoff, Treasury issuance, the TGA, ON RRP, and dealer balance sheets interact under ample reserves.
+Tracking how Fed runoff, Treasury issuance, the TGA, ON RRP, and private intermediation interact under ample reserves.
 
 ## Question
 
@@ -18,9 +18,9 @@ The effective stance of monetary conditions depends jointly on Fed balance-sheet
 4. Do dealer inventories and repo conditions respond to combined Fed + Treasury effects?
 5. Do buybacks act as a release valve for duration pressure?
 6. How does ON RRP drainage change money-market sensitivity?
-7. Does the Fed-Treasury interaction tighten when liquidity is low?
+7. How do lower-buffer states differ from higher-buffer states?
 
-Descriptive evidence is the core analysis. Light econometrics (reaction function, local projections) corroborate.
+Descriptive evidence is the core analysis. The site is organized around reserve drainage, buffers, cash mechanics, duration burden, intermediation, sectoral absorption, and realized issuance. Light econometrics appear only as supplementary checks.
 
 ## Data
 
@@ -30,9 +30,11 @@ All data from free public sources. No proprietary data required.
 |--------|----------|
 | H.4.1 balance-sheet items | FRED |
 | H.15 rates and repo | FRED / NY Fed |
+| Z.1 sectoral Treasury holdings appendix | FRED |
 | Primary dealer statistics | NY Fed Markets API |
 | Quarterly refunding | Treasury |
-| Auction results | Treasury Fiscal Data |
+| Auction results and realized mix appendix | Treasury Fiscal Data |
+| Daily cash and debt cross-check appendix | Treasury Fiscal Data |
 | Buyback operations | TreasuryDirect |
 
 ## Quickstart
@@ -60,6 +62,14 @@ make publish       JSON artifacts for the site
 make site          Build site manifest
 make verify        Check all artifacts present
 ```
+
+## Public structure
+
+1. Drainage and buffer conditions.
+2. Debt-ceiling cash mechanics and the DTS cross-check.
+3. Duration burden, dealer absorption, and repo intermediation.
+4. Sectoral absorption and realized auction mix appendices.
+5. Supplementary econometric checks.
 
 ## Conventions
 

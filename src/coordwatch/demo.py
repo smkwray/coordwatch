@@ -254,6 +254,40 @@ def _weekly_demo(quarter_df: pd.DataFrame, seed: int = 42) -> pd.DataFrame:
     return week_df
 
 
+def _sectoral_demo(quarter_df: pd.DataFrame, seed: int = 42) -> pd.DataFrame:
+    rng = np.random.default_rng(seed + 2)
+    q = quarter_df.copy()
+    q["date"] = pd.PeriodIndex(q["quarter"], freq="Q").start_time
+    n = len(q)
+    trend = np.linspace(0, 1, n)
+    qt2_flag = (q["quarter"] >= "2022Q2").astype(float)
+    debt_limit = q["debt_limit_flag"].astype(float)
+
+    total_bn = 14500 + 8200 * trend + 180 * debt_limit + rng.normal(0, 110, n)
+    households_share = 0.27 - 0.02 * trend + rng.normal(0, 0.004, n)
+    row_share = 0.23 + 0.05 * trend + rng.normal(0, 0.005, n)
+    banks_share = 0.14 - 0.02 * trend + rng.normal(0, 0.003, n)
+    mmf_share = 0.03 + 0.05 * qt2_flag + 0.015 * trend + rng.normal(0, 0.003, n)
+    mutual_share = 0.11 + 0.01 * trend + rng.normal(0, 0.003, n)
+    dealers_share = 0.025 + 0.004 * qt2_flag + rng.normal(0, 0.001, n)
+    shares = np.vstack([households_share, row_share, banks_share, mmf_share, mutual_share, dealers_share]).T
+    shares = np.clip(shares, 0.01, None)
+    selected_total = shares.sum(axis=1)
+    scale = np.minimum(0.82 / selected_total, 1.0)
+    shares = shares * scale[:, None]
+
+    values_bn = {
+        "BOGZ1FL893061105Q": total_bn,
+        "BOGZ1LM153061105Q": total_bn * shares[:, 0],
+        "BOGZ1LM263061105Q": total_bn * shares[:, 1],
+        "BOGZ1LM763061100Q": total_bn * shares[:, 2],
+        "BOGZ1FL633061105Q": total_bn * shares[:, 3],
+        "BOGZ1LM653061105Q": total_bn * shares[:, 4],
+        "BOGZ1FL663061105Q": total_bn * shares[:, 5],
+    }
+    return pd.DataFrame({"DATE": q["date"], **{sid: np.round(vals * 1000, 0) for sid, vals in values_bn.items()}})
+
+
 def build_demo_seed(seed: int = 42) -> dict[str, int | str]:
     ensure_repo_dirs()
     base = RAW_DIR / "demo"
@@ -263,6 +297,7 @@ def build_demo_seed(seed: int = 42) -> dict[str, int | str]:
 
     quarter_df = _quarterly_demo(seed=seed)
     week_df = _weekly_demo(quarter_df, seed=seed)
+    sector_df = _sectoral_demo(quarter_df, seed=seed)
 
     write_csv(quarter_df, base / "treasury" / "refunding_panel_demo.csv")
     write_parquet(quarter_df, base / "treasury" / "refunding_panel_demo.parquet")
@@ -286,6 +321,10 @@ def build_demo_seed(seed: int = 42) -> dict[str, int | str]:
     }
     for sid, col in fred_map.items():
         out = week_df[["week", col]].rename(columns={"week": "DATE", col: "VALUE"}).copy()
+        write_csv(out, base / "fred" / f"{sid}.csv")
+
+    for sid in [col for col in sector_df.columns if col != "DATE"]:
+        out = sector_df[["DATE", sid]].rename(columns={sid: "VALUE"}).copy()
         write_csv(out, base / "fred" / f"{sid}.csv")
 
     pd_demo = week_df[["week", "dealer_inventory_bn"]].rename(columns={"week": "date", "dealer_inventory_bn": "PDPOSGST-TOT"}).copy()

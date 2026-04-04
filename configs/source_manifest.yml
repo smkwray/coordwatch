@@ -31,6 +31,8 @@ fred:
 treasury_optional:
   daily_treasury_statement: https://fiscaldata.treasury.gov/datasets/daily-treasury-statement/operating-cash-balance
   debt_to_the_penny: https://fiscaldata.treasury.gov/datasets/debt-to-the-penny/debt-to-the-penny
+  dts_operating_cash_balance_api: https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/dts/operating_cash_balance
+  debt_to_penny_api: https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/debt_to_penny
 
 fed_optional:
   h8_release: https://www.federalreserve.gov/releases/h8/

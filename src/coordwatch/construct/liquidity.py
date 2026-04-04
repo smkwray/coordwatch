@@ -4,9 +4,24 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+from coordwatch.config import load_model_specs
 
-def add_liquidity_state(df: pd.DataFrame, liquidity_col: str = "system_liquidity_bn", quantile: float = 0.30) -> pd.DataFrame:
+
+DEFAULT_LIQUIDITY_STATE_QUANTILE = 0.35
+
+
+def liquidity_state_quantile() -> float:
+    specs = load_model_specs()
+    return float(specs.get("liquidity_state_quantile", DEFAULT_LIQUIDITY_STATE_QUANTILE))
+
+
+def add_liquidity_state(
+    df: pd.DataFrame,
+    liquidity_col: str = "system_liquidity_bn",
+    quantile: float | None = None,
+) -> pd.DataFrame:
     out = df.copy()
+    quantile = liquidity_state_quantile() if quantile is None else float(quantile)
     threshold = float(out[liquidity_col].quantile(quantile))
     out["low_liquidity"] = (out[liquidity_col] <= threshold).astype(int)
     out["low_liquidity_prev"] = out["low_liquidity"].shift(1).fillna(0).astype(int)

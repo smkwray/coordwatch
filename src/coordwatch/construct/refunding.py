@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from coordwatch.construct.liquidity import liquidity_state_quantile
 from coordwatch.io import read_csv_if_exists, write_csv, write_parquet
 from coordwatch.logging_utils import get_logger
 from coordwatch.paths import INTERIM_DIR, MANUAL_DIR, PROCESSED_DIR, RAW_DIR, REFERENCE_DIR, ensure_repo_dirs
@@ -81,12 +82,13 @@ def compute_coupon_dv01_from_deltas(df: pd.DataFrame) -> pd.Series:
 def attach_quarterly_liquidity_state(
     panel: pd.DataFrame,
     weekly: pd.DataFrame,
-    quantile: float = 0.35,
+    quantile: float | None = None,
 ) -> pd.DataFrame:
     """Derive the quarterly liquidity state from the true weekly panel."""
     out = panel.copy()
     if weekly.empty or "system_liquidity_bn" not in weekly.columns:
         return out
+    quantile = liquidity_state_quantile() if quantile is None else float(quantile)
 
     weekly_work = weekly.copy()
     if "calendar_quarter" in weekly_work.columns:
@@ -212,7 +214,12 @@ def build_refunding_panel(prefer_real: bool = True, output_dir: Path | None = No
     panel = panel.sort_values("refunding_date").reset_index(drop=True)
 
     if "low_liquidity_prev" not in panel.columns:
-        threshold = np.nanpercentile(panel.get("system_liquidity_q_bn", pd.Series([0] * len(panel))), 35) if "system_liquidity_q_bn" in panel.columns else 0
+        quantile = liquidity_state_quantile()
+        threshold = (
+            np.nanpercentile(panel.get("system_liquidity_q_bn", pd.Series([0] * len(panel))), quantile * 100)
+            if "system_liquidity_q_bn" in panel.columns
+            else 0
+        )
         low_liq = (panel.get("system_liquidity_q_bn", pd.Series([threshold + 1] * len(panel))) <= threshold).astype(int)
         panel["low_liquidity_prev"] = low_liq.shift(1).fillna(0).astype(int)
 

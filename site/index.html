@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <title>CoordWatch</title>
+  <link rel="icon" href="data:,">
   <script src="js/theme.js"></script>
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -15,13 +16,17 @@
   <nav>
     <ul class="nav-links">
       <li><a href="#drainage">Drainage</a></li>
-      <li><a href="#absorption">Absorption</a></li>
-      <li><a href="#cost">Cost</a></li>
-      <li><a href="#response">Response</a></li>
       <li><a href="#buffer">Buffer</a></li>
+      <li><a href="#cash">Cash</a></li>
+      <li><a href="#response">Duration</a></li>
+      <li><a href="#channels">Channels</a></li>
+      <li><a href="#absorption">Dealers</a></li>
+      <li><a href="#sectors">Sectors</a></li>
+      <li><a href="#issuance">Issuance</a></li>
+      <li><a href="#cost">Repo</a></li>
       <li><a href="#regimes">Regimes</a></li>
-      <li><a href="#econometrics">Econometrics</a></li>
       <li><a href="#notes">Notes</a></li>
+      <li><a href="#econometrics">Checks</a></li>
     </ul>
   </nav>
   <div class="header-controls">
@@ -32,7 +37,7 @@
 
 <section class="hero">
   <h1>How do Fed runoff, Treasury debt management, and liquidity conditions combine under ample reserves?</h1>
-  <p class="hero-sub">Under an ample-reserves regime, monetary conditions depend jointly on Fed balance-sheet runoff, Treasury issuance composition, TGA management, ON RRP drainage, and private intermediation capacity. This project follows the balance sheets.</p>
+  <p class="hero-sub">Under an ample-reserves regime, monetary conditions depend jointly on Fed balance-sheet runoff, Treasury issuance composition, TGA management, ON RRP drainage, and private intermediation capacity. Read the site in that order: drainage and buffers first, then cash mechanics, duration burden, intermediation, sectoral absorption, and only then the supplementary regressions.</p>
   <div class="stats-row">
     <div class="stat-chip">
       <span class="stat-value" id="stat-soma">&mdash;</span>
@@ -50,6 +55,14 @@
       <span class="stat-value" id="stat-spread">&mdash;</span>
       <span class="stat-label">Repo spread (latest)</span>
     </div>
+  </div>
+  <div class="hero-path" aria-label="Suggested reading order">
+    <span class="hero-step">1. Drainage</span>
+    <span class="hero-step">2. Buffer And Cash</span>
+    <span class="hero-step">3. Duration Burden</span>
+    <span class="hero-step">4. Intermediation</span>
+    <span class="hero-step">5. Sectoral Absorption</span>
+    <span class="hero-step">6. Supplementary Checks</span>
   </div>
 </section>
 
@@ -74,67 +87,13 @@
     </div>
   </section>
 
-  <!-- ========== Who Absorbs the Duration? ========== -->
-  <section class="section" id="absorption">
-    <div class="section-header">
-      <h2>Who Absorbs the Duration?</h2>
-      <span class="section-tag">Dealers</span>
-    </div>
-    <p>Primary dealers are the first line of absorption. As SOMA declines and Treasury continues issuing, dealer inventories have more than doubled.</p>
-    <div class="chart-single">
-      <div class="chart-container">
-        <p class="loading">Loading dealer data&hellip;</p>
-        <canvas id="dealerChart"></canvas>
-      </div>
-    </div>
-    <div class="insight-box" id="dealerInsight">
-      <p class="loading">Loading insight&hellip;</p>
-    </div>
-  </section>
-
-  <!-- ========== What Does It Cost? ========== -->
-  <section class="section" id="cost">
-    <div class="section-header">
-      <h2>What Does It Cost?</h2>
-      <span class="section-tag">Repo Market</span>
-    </div>
-    <p>Repo spreads measure the price of overnight Treasury financing relative to the Fed&rsquo;s administered rates. As the ON RRP buffer drains and dealer balance sheets fill, spreads have widened.</p>
-    <div class="chart-single">
-      <div class="chart-container">
-        <p class="loading">Loading repo data&hellip;</p>
-        <canvas id="repoChart"></canvas>
-      </div>
-    </div>
-    <div class="insight-box" id="repoInsight">
-      <p class="loading">Loading insight&hellip;</p>
-    </div>
-  </section>
-
-  <!-- ========== Treasury Debt Management ========== -->
-  <section class="section" id="response">
-    <div class="section-header">
-      <h2>Treasury Debt Management</h2>
-      <span class="section-tag">Duration</span>
-    </div>
-    <p>Net private duration supply tracks how much duration the private sector must absorb: coupon issuance + SOMA runoff &minus; buybacks. Treasury&rsquo;s issuance mix and buyback operations can change that burden even when the overall deficit is unchanged.</p>
-    <div class="chart-single">
-      <div class="chart-container">
-        <p class="loading">Loading quarterly data&hellip;</p>
-        <canvas id="netDurationChart"></canvas>
-      </div>
-    </div>
-    <div class="insight-box" id="durationInsight">
-      <p class="loading">Loading insight&hellip;</p>
-    </div>
-  </section>
-
   <!-- ========== The Buffer ========== -->
   <section class="section" id="buffer">
     <div class="section-header">
       <h2>The Buffer</h2>
       <span class="section-tag">ON RRP</span>
     </div>
-    <p>The ON RRP facility acted as a liquidity buffer during early QT &mdash; money market funds parked cash there instead of in reserves. As the buffer drains, the system becomes more sensitive to further drainage.</p>
+    <p>The ON RRP facility acted as a liquidity buffer during early QT. As that buffer drains, the system becomes more sensitive to the same amount of runoff or cash-balance pressure.</p>
     <div class="chart-pair">
       <div class="chart-container">
         <p class="loading">Loading ON RRP share data&hellip;</p>
@@ -150,48 +109,153 @@
     </div>
   </section>
 
+  <section class="section" id="cash">
+    <div class="section-header">
+      <h2>Debt-Ceiling Cash Mechanics</h2>
+      <span class="section-tag">Appendix</span>
+    </div>
+    <p>These windows separate reserve-drain mechanics from Treasury cash management. ON RRP is daily; H.4.1 balance-sheet fields are carried forward between release dates so the debt-ceiling episodes can be read on a day-by-day clock, then cross-checked against the Daily Treasury Statement below.</p>
+    <div class="chart-pair">
+      <div class="chart-container">
+        <p class="loading">Loading 2023 debt-ceiling window&hellip;</p>
+        <canvas id="cash2023Chart"></canvas>
+      </div>
+      <div class="chart-container">
+        <p class="loading">Loading 2025 debt-ceiling window&hellip;</p>
+        <canvas id="cash2025Chart"></canvas>
+      </div>
+    </div>
+    <div id="cashSummaryTable"><p class="loading">Loading cash-mechanics summary&hellip;</p></div>
+    <div id="cashValidationTable"><p class="loading">Loading cash validation&hellip;</p></div>
+    <div class="insight-box" id="cashInsight">
+      <p class="loading">Loading cash-mechanics insight&hellip;</p>
+    </div>
+  </section>
+
+  <!-- ========== Treasury Debt Management ========== -->
+  <section class="section" id="response">
+    <div class="section-header">
+      <h2>Duration Burden</h2>
+      <span class="section-tag">Duration</span>
+    </div>
+    <p>Net private duration supply tracks how much duration the private sector must absorb: coupon issuance + SOMA runoff &minus; buybacks. Treasury&rsquo;s issuance mix can offset or amplify that burden even when the overall deficit is unchanged.</p>
+    <div class="chart-single">
+      <div class="chart-container">
+        <p class="loading">Loading quarterly data&hellip;</p>
+        <canvas id="netDurationChart"></canvas>
+      </div>
+    </div>
+    <div class="insight-box" id="durationInsight">
+      <p class="loading">Loading insight&hellip;</p>
+    </div>
+  </section>
+
+  <section class="section" id="channels">
+    <div class="section-header">
+      <h2>Three Transmission Channels</h2>
+      <span class="section-tag">Dashboard</span>
+    </div>
+    <p>This dashboard separates reserve conditions, duration burden, and intermediation capacity. It is the shortest path through the balance-sheet story and keeps the argument descriptive.</p>
+    <div id="channelCards" class="channel-grid"><p class="loading">Loading channel decomposition&hellip;</p></div>
+    <div id="bufferSplitTable"><p class="loading">Loading state split&hellip;</p></div>
+    <div class="insight-box" id="channelInsight">
+      <p class="loading">Loading channel insight&hellip;</p>
+    </div>
+  </section>
+
+  <!-- ========== Dealer Absorption ========== -->
+  <section class="section" id="absorption">
+    <div class="section-header">
+      <h2>Dealer Absorption</h2>
+      <span class="section-tag">Dealers</span>
+    </div>
+    <p>Primary dealers are the first line of absorption. This section keeps the focus on the front-line balance sheet before the sector appendix broadens the view to the rest of the system.</p>
+    <div class="chart-single">
+      <div class="chart-container">
+        <p class="loading">Loading dealer data&hellip;</p>
+        <canvas id="dealerChart"></canvas>
+      </div>
+    </div>
+    <div class="insight-box" id="dealerInsight">
+      <p class="loading">Loading insight&hellip;</p>
+    </div>
+  </section>
+
+  <section class="section" id="sectors">
+    <div class="section-header">
+      <h2>Sectoral Absorbers</h2>
+      <span class="section-tag">Appendix</span>
+    </div>
+    <p>This appendix extends the dealer view to published quarterly holder sectors. It tracks how much of the Treasury stock sits with households, banks, money funds, mutual funds, dealers, rest of world, and other private sectors.</p>
+    <div class="chart-pair">
+      <div class="chart-container">
+        <p class="loading">Loading sector holdings&hellip;</p>
+        <canvas id="sectorLevelsChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <p class="loading">Loading sector shares&hellip;</p>
+        <canvas id="sectorSharesChart"></canvas>
+      </div>
+    </div>
+    <div id="sectorSummaryTable"><p class="loading">Loading sector summary&hellip;</p></div>
+    <div class="insight-box" id="sectorInsight">
+      <p class="loading">Loading sector insight&hellip;</p>
+    </div>
+  </section>
+
+  <section class="section" id="issuance">
+    <div class="section-header">
+      <h2>Realized Auction Mix</h2>
+      <span class="section-tag">Appendix</span>
+    </div>
+    <p>This appendix uses realized auction settlements rather than refunding guidance. It shows how much issuance actually came as bills, fixed-rate coupons, and FRNs, plus how the fixed-rate coupon mix shifted across tenors.</p>
+    <div class="chart-pair">
+      <div class="chart-container">
+        <p class="loading">Loading issuance shares&hellip;</p>
+        <canvas id="auctionMixChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <p class="loading">Loading coupon tenors&hellip;</p>
+        <canvas id="auctionTenorChart"></canvas>
+      </div>
+    </div>
+    <div id="auctionSummaryTable"><p class="loading">Loading auction summary&hellip;</p></div>
+    <div id="auctionTenorTable"><p class="loading">Loading tenor summary&hellip;</p></div>
+    <div class="insight-box" id="auctionInsight">
+      <p class="loading">Loading auction-mix insight&hellip;</p>
+    </div>
+  </section>
+
+  <!-- ========== What Does It Cost? ========== -->
+  <section class="section" id="cost">
+    <div class="section-header">
+      <h2>Intermediation Cost</h2>
+      <span class="section-tag">Repo Market</span>
+    </div>
+    <p>Repo spreads measure the financing cost of Treasury intermediation relative to the Fed&rsquo;s administered rates. As buffers drain and dealer balance sheets fill, this is where pressure should become visible first.</p>
+    <div class="chart-single">
+      <div class="chart-container">
+        <p class="loading">Loading repo data&hellip;</p>
+        <canvas id="repoChart"></canvas>
+      </div>
+    </div>
+    <div class="insight-box" id="repoInsight">
+      <p class="loading">Loading insight&hellip;</p>
+    </div>
+  </section>
+
   <!-- ========== Regime Comparison ========== -->
   <section class="section" id="regimes">
     <div class="section-header">
-      <h2>Comparing Regimes</h2>
+      <h2>Episode And Regime Comparisons</h2>
       <span class="section-tag">Data</span>
     </div>
-    <p>How do key variables compare across different Fed balance-sheet regimes and specific episodes?</p>
+    <p>These tables summarize how the same variables look across major Fed balance-sheet regimes and selected episode windows.</p>
 
     <div id="regimeTable"><p class="loading">Loading regime data&hellip;</p></div>
     <div id="qtCompareTable"><p class="loading">Loading QT comparison data&hellip;</p></div>
     <div id="episodeTable"><p class="loading">Loading episode data&hellip;</p></div>
     <div id="corrTable"><p class="loading">Loading correlation data&hellip;</p></div>
-  </section>
-
-  <!-- ========== Supporting Econometrics ========== -->
-  <section class="section" id="econometrics">
-    <div class="section-header">
-      <h2>Supporting Econometrics</h2>
-      <span class="section-tag">Supplementary</span>
-    </div>
-    <p>The descriptive evidence above stands on its own. These regressions are supplementary checks on the balance-sheet story.</p>
-
-    <div class="collapsible">
-      <div class="collapsible-header">Reaction Function</div>
-      <div class="collapsible-body">
-        <div style="padding:16px">
-          <p style="margin-bottom:12px;color:var(--c-text-muted);font-size:0.9rem">How does Treasury&rsquo;s issuance mix move alongside Fed balance-sheet pressure? OLS with HC3 robust standard errors. Dependent variable: mix_shock_dv01.</p>
-          <div id="reactionTable"><p class="loading">Loading&hellip;</p></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="collapsible">
-      <div class="collapsible-header">Local Projections</div>
-      <div class="collapsible-body">
-        <div style="padding:16px">
-          <p style="margin-bottom:12px;color:var(--c-text-muted);font-size:0.9rem">Multi-horizon impulse responses of dealer inventories and repo spreads to fed_pressure_dv01 shocks, with HAC standard errors.</p>
-          <div id="lpDealerTable"><p class="loading">Loading&hellip;</p></div>
-          <div id="lpRepoTable" style="margin-top:16px"><p class="loading">Loading&hellip;</p></div>
-        </div>
-      </div>
-    </div>
   </section>
 
   <section class="section" id="notes">
@@ -200,9 +264,47 @@
       <span class="section-tag">Methods</span>
     </div>
     <p>These notes summarize the main construction choices, caveats, and reproducibility details behind the public bundle.</p>
-    <div class="notes-grid">
-      <div id="measurementNotes" class="card"><p class="loading">Loading notes&hellip;</p></div>
-      <div id="reproNotes" class="card"><p class="loading">Loading artifact metadata&hellip;</p></div>
+    <div class="collapsible">
+      <div class="collapsible-header">Open Measurement Notes</div>
+      <div class="collapsible-body">
+        <div style="padding:16px">
+          <div class="notes-grid">
+            <div id="measurementNotes" class="card"><p class="loading">Loading notes&hellip;</p></div>
+            <div id="reproNotes" class="card"><p class="loading">Loading artifact metadata&hellip;</p></div>
+          </div>
+          <div id="manualAuditAppendix" class="card provenance-card"><p class="loading">Loading manual-input appendix&hellip;</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== Supporting Econometrics ========== -->
+  <section class="section" id="econometrics">
+    <div class="section-header">
+      <h2>Supplementary Checks</h2>
+      <span class="section-tag">Supplement</span>
+    </div>
+    <p>The descriptive sections above are the main evidence. These smaller-sample regressions are supplementary checks on the same balance-sheet story and should be read after the descriptive exhibits.</p>
+
+    <div class="collapsible">
+      <div class="collapsible-header">Quarterly Reaction Check</div>
+      <div class="collapsible-body">
+        <div style="padding:16px">
+          <p style="margin-bottom:12px;color:var(--c-text-muted);font-size:0.9rem">How does Treasury&rsquo;s issuance mix move alongside Fed balance-sheet pressure? OLS with HC3 robust standard errors. Dependent variable: mix_shock_dv01. This is a compact quarterly check, not the identification strategy.</p>
+          <div id="reactionTable"><p class="loading">Loading&hellip;</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="collapsible">
+      <div class="collapsible-header">Weekly Local Projection Check</div>
+      <div class="collapsible-body">
+        <div style="padding:16px">
+          <p style="margin-bottom:12px;color:var(--c-text-muted);font-size:0.9rem">Multi-horizon responses of dealer inventories and repo spreads to fed_pressure_dv01 shocks, with HAC standard errors. These are best read as supporting checks on the descriptive channel splits above.</p>
+          <div id="lpDealerTable"><p class="loading">Loading&hellip;</p></div>
+          <div id="lpRepoTable" style="margin-top:16px"><p class="loading">Loading&hellip;</p></div>
+        </div>
+      </div>
     </div>
   </section>
 
