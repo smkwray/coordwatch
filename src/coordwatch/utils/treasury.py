@@ -35,6 +35,54 @@ BUYBACK_KEYWORDS = [
     "results",
 ]
 
+STATEMENT_SIGNAL_PATTERNS = {
+    "tbac_mention_flag": [
+        "tbac",
+        "treasury borrowing advisory committee",
+    ],
+    "market_function_mention_flag": [
+        "market functioning",
+        "well-functioning",
+        "well functioning",
+        "market liquidity",
+        "liquidity conditions",
+        "market capacity",
+        "regular and predictable",
+    ],
+    "regular_predictable_mention_flag": [
+        "regular and predictable",
+    ],
+    "bill_flexibility_mention_flag": [
+        "bill issuance",
+        "bill financing",
+        "bill share",
+        "short-dated issuance",
+        "bills absorb",
+        "bills continue to absorb",
+        "bills remain elevated",
+        "bills can be increased",
+        "bills can be decreased",
+        "bill sector",
+    ],
+    "cash_management_mention_flag": [
+        "cash balance",
+        "cash management",
+        "treasury general account",
+        "tga",
+    ],
+    "buyback_mention_flag": BUYBACK_KEYWORDS,
+    "coupon_size_mention_flag": [
+        "auction sizes",
+        "auction size",
+        "nominal coupon",
+        "coupon auction",
+        "coupon-bearing",
+        "new issue 10-year",
+        "new issue 30-year",
+        "reopen the 10-year",
+    ],
+}
+
 
 def sanitize_filename_from_url(url: str) -> str:
     parsed = urlparse(url)
@@ -84,10 +132,33 @@ def download_link_records(records: list[dict[str, str]], out_dir: Path, overwrit
     return pd.DataFrame(rows)
 
 
+def _extract_primary_html_text(html: str) -> str:
+    soup = BeautifulSoup(html, "lxml")
+    for node in soup(["script", "style", "noscript"]):
+        node.decompose()
+    selectors = [
+        "main",
+        "article",
+        '[role="main"]',
+        ".main-content",
+        ".region-content",
+        ".field--name-body",
+        ".node__content",
+    ]
+    best = ""
+    for selector in selectors:
+        for node in soup.select(selector):
+            candidate = clean_whitespace(node.get_text(" ", strip=True))
+            if len(candidate) > len(best):
+                best = candidate
+    if best:
+        return best
+    return clean_whitespace(soup.get_text(" ", strip=True))
+
+
 def html_to_text(path: Path) -> str:
     html = path.read_text(encoding="utf-8", errors="ignore")
-    soup = BeautifulSoup(html, "lxml")
-    return clean_whitespace(soup.get_text(" ", strip=True))
+    return _extract_primary_html_text(html)
 
 
 def pdf_to_text(path: Path) -> str:
@@ -109,8 +180,7 @@ def file_to_text(path: Path) -> str:
 
 def url_to_text(url: str) -> str:
     html = get_text(url)
-    soup = BeautifulSoup(html, "lxml")
-    return clean_whitespace(soup.get_text(" ", strip=True))
+    return _extract_primary_html_text(html)
 
 
 def quarter_end_month(quarter: str | None) -> str | None:
@@ -193,11 +263,11 @@ def extract_cash_balance_assumption(text: str, quarter: str | None = None) -> fl
     return None
 
 
-def extract_refunding_numeric_hints(text: str) -> dict[str, float | int | None]:
+def extract_refunding_numeric_hints(text: str, quarter: str | None = None) -> dict[str, float | int | None]:
     lowered = (text or "").lower()
     values = {
         "privately_held_net_marketable_borrowing_bn": None,
-        "cash_balance_assumption_bn": extract_cash_balance_assumption(text),
+        "cash_balance_assumption_bn": extract_cash_balance_assumption(text, quarter=quarter),
         "debt_limit_flag": int("debt limit" in lowered or "debt ceiling" in lowered),
         "soma_explicit_mention_flag": int(
             "soma" in lowered or "federal reserve" in lowered or "reinvestment" in lowered or "redemption" in lowered
@@ -219,6 +289,29 @@ def extract_refunding_numeric_hints(text: str) -> dict[str, float | int | None]:
                 values[key] = float(m.group(1).replace(",", ""))
                 break
     return values
+
+
+def extract_statement_signal_hints(text: str) -> dict[str, float | int]:
+    cleaned = clean_whitespace(text or "")
+    lowered = cleaned.lower()
+    values: dict[str, float | int] = {
+        "statement_text_length": len(cleaned),
+        "statement_word_count": len(cleaned.split()) if cleaned else 0,
+    }
+    for key, patterns in STATEMENT_SIGNAL_PATTERNS.items():
+        values[key] = int(any(pattern.lower() in lowered for pattern in patterns))
+    return values
+
+
+def cached_statement_text(url: str, cache_dir: Path, source_dir: Path | None = None, overwrite: bool = False) -> tuple[str, Path]:
+    filename = sanitize_filename_from_url(url)
+    if source_dir is not None:
+        source_path = source_dir / filename
+        if source_path.exists():
+            return file_to_text(source_path), source_path
+    cache_path = cache_dir / filename
+    download_to_path(url, cache_path, overwrite=overwrite)
+    return file_to_text(cache_path), cache_path
 
 
 def statement_metadata_from_path(path: Path) -> dict[str, str]:

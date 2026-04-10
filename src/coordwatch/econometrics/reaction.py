@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -17,22 +18,44 @@ class RegressionResultBundle:
     summary_text: str
 
 
-def run_reaction_function(df: pd.DataFrame) -> RegressionResultBundle:
-    spec = load_model_specs()["reaction_function"]
+def _get_reaction_spec(spec_name: str) -> dict[str, Any]:
+    specs = load_model_specs()
+    if spec_name == "reaction_function":
+        return dict(specs["reaction_function"])
+    appendix = specs.get("reaction_function_appendices", {}).get(spec_name)
+    if appendix is None:
+        raise KeyError(f"Unknown reaction-function spec: {spec_name}")
+    return dict(appendix)
+
+
+def _apply_sample_filters(df: pd.DataFrame, spec: dict[str, Any]) -> pd.DataFrame:
+    work = df.copy()
+    if spec.get("clean_sample_only", True) and "clean_sample_flag" in work.columns:
+        work = work.loc[work["clean_sample_flag"].fillna(1).astype(int) == 1].copy()
+    if spec.get("exclude_debt_limit", False) and "debt_limit_flag" in work.columns:
+        work = work.loc[work["debt_limit_flag"].fillna(0).astype(int) == 0].copy()
+    return work
+
+
+def run_reaction_function(df: pd.DataFrame, spec_name: str = "reaction_function") -> RegressionResultBundle:
+    spec = _get_reaction_spec(spec_name)
     dep = spec["dependent"]
     regressors = spec["regressors"]
     cov = spec.get("robust_cov", "HC3")
 
-    work = df.copy()
-    work = work.loc[work.get("clean_sample_flag", 1).fillna(1).astype(int) == 1].copy()
+    work = _apply_sample_filters(df, spec)
     cols = [dep] + regressors
-    work = work[cols + [c for c in ["quarter"] if c in work.columns]].dropna(subset=[dep])
+    for col in cols:
+        if col not in work.columns:
+            work[col] = np.nan
+    meta_cols = [c for c in ["quarter"] if c in work.columns]
+    work = work[cols + meta_cols].dropna(subset=[dep])
     X = work[regressors].apply(pd.to_numeric, errors="coerce")
     y = pd.to_numeric(work[dep], errors="coerce")
     valid = X.notna().all(axis=1) & y.notna()
     X = X.loc[valid]
     y = y.loc[valid]
-    meta = work.loc[valid, [c for c in ["quarter"] if c in work.columns]].reset_index(drop=True)
+    meta = work.loc[valid, meta_cols].reset_index(drop=True)
     X = sm.add_constant(X)
     result = sm.OLS(y, X).fit(cov_type=cov)
 

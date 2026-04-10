@@ -3,6 +3,7 @@ do/
 
 # Browser automation artifacts
 .playwright-mcp/
+.playwright-cli/
 
 # Import scripts (not part of public pipeline)
 scripts/18_*.py

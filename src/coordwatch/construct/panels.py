@@ -6,7 +6,13 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from coordwatch.construct.liquidity import add_liquidity_state, add_qt2_liquidity_state, add_repo_spreads, compute_qt_runoff_proxy
+from coordwatch.construct.liquidity import (
+    add_liquidity_state,
+    add_liquidity_tightness_zscore,
+    add_qt2_liquidity_state,
+    add_repo_spreads,
+    compute_qt_runoff_proxy,
+)
 from coordwatch.construct.refunding import attach_quarterly_liquidity_state
 from coordwatch.io import write_csv, write_parquet
 from coordwatch.logging_utils import get_logger
@@ -15,6 +21,60 @@ from coordwatch.utils.soma import estimate_runoff_duration_equivalent, load_soma
 
 LOGGER = get_logger(__name__)
 SOMA_RELIABILITY_START = pd.Timestamp("2003-01-01")
+
+
+def _to_weekly_event_anchor(ts: pd.Timestamp) -> pd.Timestamp:
+    if pd.isna(ts):
+        return pd.NaT
+    ts = pd.Timestamp(ts).normalize()
+    offset = (2 - ts.weekday()) % 7
+    return (ts + pd.Timedelta(days=offset)).normalize()
+
+
+def _choose_placebo_week(weeks: pd.Series, actual_event_week: pd.Timestamp) -> pd.Timestamp:
+    clean = pd.to_datetime(weeks, errors="coerce").dropna().sort_values().drop_duplicates()
+    if clean.empty:
+        return pd.NaT
+    candidates = clean[clean != actual_event_week]
+    if candidates.empty:
+        return pd.NaT
+    if pd.isna(actual_event_week):
+        return candidates.iloc[len(candidates) // 2]
+    preferred = candidates[(candidates - actual_event_week).abs() >= pd.Timedelta(days=14)]
+    if not preferred.empty:
+        candidates = preferred
+    midpoint = clean.iloc[0] + (clean.iloc[-1] - clean.iloc[0]) / 2
+    return min(
+        list(candidates),
+        key=lambda week: (abs(abs((week - actual_event_week).days) - 21), abs((week - midpoint).days)),
+    )
+
+
+def _add_refunding_event_calendar(weekly: pd.DataFrame, refunding_panel: pd.DataFrame) -> pd.DataFrame:
+    if weekly.empty or refunding_panel.empty or "quarter" not in weekly.columns:
+        return weekly
+    events = refunding_panel[["quarter", "refunding_date"]].copy()
+    events["refunding_date"] = pd.to_datetime(events["refunding_date"], errors="coerce")
+    events["refunding_event_week"] = events["refunding_date"].apply(_to_weekly_event_anchor)
+    events = events.dropna(subset=["refunding_event_week"]).drop_duplicates(subset=["quarter"], keep="last")
+    out = weekly.merge(events[["quarter", "refunding_event_week"]], on="quarter", how="left")
+    placebo_rows = []
+    eligible = out[out["refunding_event_week"].notna()].copy()
+    for quarter, sub in eligible.groupby("quarter", dropna=True):
+        placebo_rows.append(
+            {
+                "quarter": quarter,
+                "placebo_refunding_week": _choose_placebo_week(sub["week"], sub["refunding_event_week"].iloc[0]),
+            }
+        )
+    placebo = pd.DataFrame(placebo_rows)
+    if not placebo.empty:
+        out = out.merge(placebo, on="quarter", how="left")
+    else:
+        out["placebo_refunding_week"] = pd.NaT
+    out["refunding_event_week_flag"] = (out["week"] == out["refunding_event_week"]).astype(int)
+    out["placebo_refunding_week_flag"] = (out["week"] == out["placebo_refunding_week"]).astype(int)
+    return out
 
 
 def _load_demo_weekly() -> pd.DataFrame:
@@ -182,6 +242,8 @@ def _attach_quarterly_shocks(weekly: pd.DataFrame, refunding_panel: pd.DataFrame
         "mix_shock_dv01",
         "buyback_offset_dv01",
         "expected_soma_redemptions_dv01",
+        "cash_balance_assumption_bn",
+        "debt_limit_flag",
         "classification_prior",
         "clean_sample_flag",
     ]
@@ -291,6 +353,7 @@ def build_weekly_master_panel(refunding_panel: pd.DataFrame, prefer_real: bool =
     if "dealer_inventory_bn" not in weekly.columns:
         weekly["dealer_inventory_bn"] = np.nan
     weekly = _attach_quarterly_shocks(weekly, refunding_panel)
+    weekly = _add_refunding_event_calendar(weekly, refunding_panel)
     weekly["qt_runoff_proxy_bn"] = compute_qt_runoff_proxy(weekly["soma_treasuries_bn"]) if "soma_treasuries_bn" in weekly.columns else 0.0
     if source == "raw":
         runoff_values, runoff_source = _compute_holdings_based_weekly_runoff(weekly)
@@ -316,13 +379,33 @@ def build_weekly_master_panel(refunding_panel: pd.DataFrame, prefer_real: bool =
         weekly["system_liquidity_bn"] = (weekly["reserves_bn"] + weekly["on_rrp_bn"]).round(2)
     if "low_liquidity" not in weekly.columns and "system_liquidity_bn" in weekly.columns:
         weekly = add_liquidity_state(weekly)
+    if "liquidity_tightness_z" not in weekly.columns and "system_liquidity_bn" in weekly.columns:
+        weekly = add_liquidity_tightness_zscore(weekly)
     if "low_liquidity_prev" not in weekly.columns:
         weekly["low_liquidity_prev"] = weekly["low_liquidity"].shift(1).fillna(0).astype(int)
     if "qt2_low_liquidity" not in weekly.columns and "system_liquidity_bn" in weekly.columns:
         weekly = add_qt2_liquidity_state(weekly)
     weekly["fed_pressure_x_low_liquidity"] = (weekly["fed_pressure_dv01"] * weekly["low_liquidity_prev"]).round(2)
+    weekly["coupon_dv01_x_low_liquidity"] = (weekly["coupon_dv01_shock"] * weekly["low_liquidity_prev"]).round(2)
+    weekly["bill_dv01_x_low_liquidity"] = (weekly["bill_dv01_offset"] * weekly["low_liquidity_prev"]).round(2)
+    weekly["fed_pressure_x_liquidity_tightness_z"] = (
+        weekly["fed_pressure_dv01"] * weekly.get("liquidity_tightness_z", pd.Series(0.0, index=weekly.index))
+    ).round(2)
+    weekly["refunding_event_fed_pressure_dv01"] = (
+        weekly["fed_pressure_dv01"] * weekly.get("refunding_event_week_flag", pd.Series(0, index=weekly.index))
+    ).round(2)
+    weekly["refunding_event_fed_pressure_x_low_liquidity"] = (
+        weekly["refunding_event_fed_pressure_dv01"] * weekly["low_liquidity_prev"]
+    ).round(2)
+    weekly["placebo_refunding_fed_pressure_dv01"] = (
+        weekly["fed_pressure_dv01"] * weekly.get("placebo_refunding_week_flag", pd.Series(0, index=weekly.index))
+    ).round(2)
+    weekly["placebo_refunding_fed_pressure_x_low_liquidity"] = (
+        weekly["placebo_refunding_fed_pressure_dv01"] * weekly["low_liquidity_prev"]
+    ).round(2)
     weekly["dealer_inventory_lag1"] = weekly["dealer_inventory_bn"].shift(1)
     weekly["repo_spread_lag1"] = weekly["repo_spread_bp"].shift(1)
+    weekly["repo_spread_iorb_lag1"] = weekly.get("repo_spread_iorb_bp", pd.Series(index=weekly.index, dtype=float)).shift(1)
     weekly["tga_change_bn"] = weekly.get("tga_bn", pd.Series(index=weekly.index, dtype=float)).diff().fillna(0)
     quarter_end = weekly.groupby("calendar_quarter")["week"].transform("max") == weekly["week"]
     weekly["quarter_end_flag"] = quarter_end.astype(int)

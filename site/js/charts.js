@@ -64,15 +64,26 @@
       fetchJ('main_lp_repo'),
       fetchJ('summary'),
       fetchJ('manual_input_audit'),
+      fetchJ('treasury_statement_signals'),
       fetchJ('daily_mechanics_appendix'),
       fetchJ('daily_validation_appendix'),
       fetchJ('sectoral_absorbers_appendix'),
-      fetchJ('auction_mix_appendix')
+      fetchJ('auction_mix_appendix'),
+      fetchJ('event_windows_appendix'),
+      fetchJ('reaction_function_continuous_liquidity'),
+      fetchJ('reaction_function_no_debt_limit'),
+      fetchJ('appendix_lp_repo_iorb'),
+      fetchJ('appendix_lp_repo_mechanism'),
+      fetchJ('appendix_lp_repo_refunding_event'),
+      fetchJ('appendix_lp_repo_refunding_placebo')
     ]).then(function (arr) {
       return {
         weekly: arr[0], qDesc: arr[1], regime: arr[2],
         qtCompare: arr[3], episodes: arr[4], corr: arr[5], reaction: arr[6],
-        lpDealer: arr[7], lpRepo: arr[8], summary: arr[9], manualAudit: arr[10], dailyAppendix: arr[11], dailyValidation: arr[12], sectoralAppendix: arr[13], auctionMixAppendix: arr[14]
+        lpDealer: arr[7], lpRepo: arr[8], summary: arr[9], manualAudit: arr[10], statementSignals: arr[11],
+        dailyAppendix: arr[12], dailyValidation: arr[13], sectoralAppendix: arr[14], auctionMixAppendix: arr[15],
+        eventWindowsAppendix: arr[16], reactionContinuous: arr[17], reactionNoDebt: arr[18], lpIorb: arr[19],
+        lpMechanism: arr[20], lpRefundingEvent: arr[21], lpRefundingPlacebo: arr[22]
       };
     });
   }
@@ -1132,6 +1143,264 @@
       '<div class="provenance-table">' + htmlTable(tableRows, ['quarter', 'refunding_date', 'verification_status', 'debt_limit_flag', 'statement_url', 'reviewer_notes'], null, colLabels) + '</div>';
   }
 
+  function buildStatementSignalsAppendix(rows) {
+    var target = el('statementSignalsAppendix');
+    if (!target || !rows || !rows.length) return;
+
+    var sorted = rows.slice().sort(function (a, b) { return String(a.quarter).localeCompare(String(b.quarter)); });
+    var latest = sorted.slice(-12);
+    var flags = [
+      ['tbac_mention_flag', 'TBAC mention'],
+      ['market_function_mention_flag', 'Market-function mention'],
+      ['bill_flexibility_mention_flag', 'Bill-flexibility mention'],
+      ['cash_management_mention_flag', 'Cash-management mention'],
+      ['buyback_mention_flag', 'Buyback mention'],
+      ['coupon_size_mention_flag', 'Coupon-guidance mention']
+    ];
+    var chipsHtml = flags.map(function (spec) {
+      var share = sorted.reduce(function (acc, row) { return acc + (Number(row[spec[0]]) === 1 ? 1 : 0); }, 0) / sorted.length;
+      return '<div class="provenance-chip"><strong>' + fmtPct(share) + '</strong><span>' + spec[1] + '</span></div>';
+    }).join('');
+
+    var tableRows = latest.map(function (row) {
+      return {
+        quarter: row.quarter,
+        tbac: Number(row.tbac_mention_flag) === 1 ? 'Yes' : 'No',
+        market_function: Number(row.market_function_mention_flag) === 1 ? 'Yes' : 'No',
+        bills: Number(row.bill_flexibility_mention_flag) === 1 ? 'Yes' : 'No',
+        cash: Number(row.cash_management_mention_flag) === 1 ? 'Yes' : 'No',
+        buybacks: Number(row.buyback_mention_flag) === 1 ? 'Yes' : 'No',
+        source: row.statement_text_source || '\u2014'
+      };
+    });
+
+    target.innerHTML =
+      '<h3 class="note-card-title">Treasury Statement Signals</h3>' +
+      '<p style="margin:0 0 12px;color:var(--c-text-muted);font-size:0.9rem">These flags are extracted from the official quarterly refunding statement pages carried in the manual override file. They are best read as coarse institutional signals rather than a fully hand-coded text dataset.</p>' +
+      '<div class="provenance-summary">' + chipsHtml + '</div>' +
+      '<div class="provenance-table">' + htmlTable(
+        tableRows,
+        ['quarter', 'tbac', 'market_function', 'bills', 'cash', 'buybacks', 'source'],
+        null,
+        {
+          quarter: 'Quarter',
+          tbac: 'TBAC',
+          market_function: 'Market Function',
+          bills: 'Bills',
+          cash: 'Cash Mgmt',
+          buybacks: 'Buybacks',
+          source: 'Text Source'
+        }
+      ) + '</div>';
+  }
+
+  function buildEventTimingAppendix(appendix, lpEvent, lpPlacebo) {
+    var repoTarget = el('eventRepoChart');
+    var pressureTarget = el('eventPressureChart');
+    var summaryTarget = el('eventWindowSummaryTable');
+    var lpTarget = el('eventLpAppendixTable');
+    var insightTarget = el('eventTimingInsight');
+    if (!repoTarget || !pressureTarget || !summaryTarget || !lpTarget || !insightTarget || !appendix || !appendix.summary || !appendix.summary.length) return;
+
+    var c = cwColors();
+    var summary = appendix.summary.slice().sort(function (a, b) { return Number(a.rel_week) - Number(b.rel_week); });
+    var actual = summary.filter(function (row) { return row.event_type === 'refunding_event'; });
+    var placebo = summary.filter(function (row) { return row.event_type === 'placebo_refunding'; });
+    var labels = actual.map(function (row) { return String(row.rel_week); });
+
+    instances.push(new Chart(repoTarget, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          tsDataset('Actual refunding week', actual.map(function (row) { return Number(row.repo_spread_bp); }), c.red),
+          tsDataset('Placebo week', placebo.map(function (row) { return Number(row.repo_spread_bp); }), c.blue)
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 1.8,
+        animation: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { color: c.textMuted, usePointStyle: true, padding: 12 } },
+          title: { display: true, text: 'Repo Spread Around Refunding And Placebo Weeks', color: c.text, font: { size: 14, weight: '600' }, padding: { bottom: 12 } },
+          tooltip: { callbacks: { label: function (ctx) { return ctx.dataset.label + ': ' + fmt(ctx.parsed.y, 1) + ' bp'; } } }
+        },
+        scales: {
+          x: { title: { display: true, text: 'Weeks From Event', color: c.textMuted }, grid: { display: false }, ticks: { color: c.textMuted } },
+          y: { title: { display: true, text: 'basis points', color: c.textMuted }, grid: { color: c.grid }, ticks: { color: c.textMuted, callback: function (v) { return fmt(v, 0) + ' bp'; } } }
+        }
+      }
+    }));
+
+    instances.push(new Chart(pressureTarget, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          tsDataset('Actual refunding week', actual.map(function (row) { return Number(row.fed_pressure_dv01); }), c.amber),
+          tsDataset('Placebo week', placebo.map(function (row) { return Number(row.fed_pressure_dv01); }), c.teal)
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 1.8,
+        animation: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { color: c.textMuted, usePointStyle: true, padding: 12 } },
+          title: { display: true, text: 'Fed Pressure Around Refunding And Placebo Weeks', color: c.text, font: { size: 14, weight: '600' }, padding: { bottom: 12 } },
+          tooltip: { callbacks: { label: function (ctx) { return ctx.dataset.label + ': ' + fmt(ctx.parsed.y, 1); } } }
+        },
+        scales: {
+          x: { title: { display: true, text: 'Weeks From Event', color: c.textMuted }, grid: { display: false }, ticks: { color: c.textMuted } },
+          y: { title: { display: true, text: 'DV01 units', color: c.textMuted }, grid: { color: c.grid }, ticks: { color: c.textMuted, callback: function (v) { return fmt(v, 0); } } }
+        }
+      }
+    }));
+
+    var eventRows = ['refunding_event', 'placebo_refunding'].map(function (eventType) {
+      var sub = (appendix.events || []).filter(function (row) { return row.event_type === eventType; });
+      return {
+        event_type: eventType === 'refunding_event' ? 'Actual refunding weeks' : 'Placebo weeks',
+        n_events: sub.length,
+        first_event: sub.length ? sub[0].event_week : '\u2014',
+        latest_event: sub.length ? sub[sub.length - 1].event_week : '\u2014'
+      };
+    });
+    summaryTarget.innerHTML =
+      '<h3>Event Window Coverage</h3>' +
+      '<p style="margin:0 0 12px;color:var(--c-text-muted);font-size:0.9rem">Both lines are built from the same weekly panel and the same quarterly mapping. The placebo event is chosen within the same refunding quarter but away from the actual refunding week.</p>' +
+      htmlTable(eventRows, ['event_type', 'n_events', 'first_event', 'latest_event'], null, {
+        event_type: 'Window Type',
+        n_events: 'Events',
+        first_event: 'First Event',
+        latest_event: 'Latest Event'
+      });
+
+    function pickTerm(rows, name) {
+      return (rows || []).filter(function (row) { return row.term === name && Number(row.horizon) <= 3; });
+    }
+    var eventRowsBase = pickTerm(lpEvent, 'refunding_event_fed_pressure_dv01');
+    var placeboRowsBase = pickTerm(lpPlacebo, 'placebo_refunding_fed_pressure_dv01');
+    var lpRows = eventRowsBase.map(function (row) {
+      var match = placeboRowsBase.filter(function (candidate) { return Number(candidate.horizon) === Number(row.horizon); })[0] || {};
+      return {
+        horizon: row.horizon,
+        actual_coef: row.coef,
+        actual_p: row.p_value,
+        placebo_coef: match.coef,
+        placebo_p: match.p_value
+      };
+    });
+    lpTarget.innerHTML =
+      '<h3>Refunding Versus Placebo LP Check</h3>' +
+      '<p style="margin:0 0 12px;color:var(--c-text-muted);font-size:0.9rem">These rows compare the base Fed-pressure pulse around actual refunding weeks with the corresponding placebo pulse at the same horizons.</p>' +
+      htmlTable(lpRows, ['horizon', 'actual_coef', 'actual_p', 'placebo_coef', 'placebo_p'], {
+        actual_coef: function (v) { return v == null || isNaN(v) ? '\u2014' : Number(v).toFixed(4); },
+        actual_p: function (v) { return v == null || isNaN(v) ? '\u2014' : Number(v).toFixed(4); },
+        placebo_coef: function (v) { return v == null || isNaN(v) ? '\u2014' : Number(v).toFixed(4); },
+        placebo_p: function (v) { return v == null || isNaN(v) ? '\u2014' : Number(v).toFixed(4); }
+      }, {
+        horizon: 'Horizon',
+        actual_coef: 'Actual Coef',
+        actual_p: 'Actual p',
+        placebo_coef: 'Placebo Coef',
+        placebo_p: 'Placebo p'
+      });
+
+    var h1Actual = eventRowsBase.filter(function (row) { return Number(row.horizon) === 1; })[0];
+    var h1Placebo = placeboRowsBase.filter(function (row) { return Number(row.horizon) === 1; })[0];
+    if (h1Actual && h1Placebo) {
+      insightTarget.innerHTML =
+        '<strong>Timing readout:</strong> At horizon 1, the refunding-week pulse is <strong>' + fmt(Number(h1Actual.coef), 4) +
+        '</strong> versus <strong>' + fmt(Number(h1Placebo.coef), 4) + '</strong> for the placebo pulse. This appendix is meant to show timing discipline, not to claim that the placebo comparison is already dispositive.';
+    }
+  }
+
+  function buildAppendixModelTables(reactionContinuous, reactionNoDebt, lpMechanism, lpIorb, lpEvent, lpPlacebo) {
+    var reactionTarget = el('reactionAppendixTable');
+    var mechanismTarget = el('lpAppendixMechanismTable');
+    var iorbTarget = el('lpAppendixIorbTable');
+    var timingTarget = el('lpAppendixTimingTable');
+
+    if (reactionTarget && reactionContinuous && reactionNoDebt) {
+      var reactionRows = []
+        .concat((reactionContinuous || []).filter(function (row) {
+          return ['liquidity_tightness_q_z_prev', 'cash_balance_assumption_bn', 'privately_held_net_marketable_borrowing_bn'].indexOf(row.term) !== -1;
+        }).map(function (row) {
+          return { model: 'Continuous liquidity', term: row.term, coef: row.coef, p_value: row.p_value };
+        }))
+        .concat((reactionNoDebt || []).filter(function (row) {
+          return ['expected_soma_redemptions_dv01', 'cash_balance_assumption_bn', 'privately_held_net_marketable_borrowing_bn'].indexOf(row.term) !== -1;
+        }).map(function (row) {
+          return { model: 'Exclude debt-limit', term: row.term, coef: row.coef, p_value: row.p_value };
+        }));
+      reactionTarget.innerHTML =
+        '<h3>Quarterly Reaction Appendices</h3>' +
+        htmlTable(reactionRows, ['model', 'term', 'coef', 'p_value'], {
+          coef: function (v) { return Number(v).toFixed(4); },
+          p_value: function (v) { return Number(v).toFixed(4); }
+        }, { model: 'Model', term: 'Term', coef: 'Coef', p_value: 'p' });
+    }
+
+    if (mechanismTarget && lpMechanism) {
+      var mechanismRows = (lpMechanism || []).filter(function (row) {
+        return Number(row.horizon) <= 2 && ['coupon_dv01_shock', 'bill_dv01_offset'].indexOf(row.term) !== -1;
+      }).map(function (row) {
+        return { horizon: row.horizon, term: row.term, coef: row.coef, p_value: row.p_value };
+      });
+      mechanismTarget.innerHTML =
+        '<h3>Coupon Versus Bills Mechanism</h3>' +
+        htmlTable(mechanismRows, ['horizon', 'term', 'coef', 'p_value'], {
+          coef: function (v) { return Number(v).toFixed(4); },
+          p_value: function (v) { return Number(v).toFixed(4); }
+        }, { horizon: 'Horizon', term: 'Term', coef: 'Coef', p_value: 'p' });
+    }
+
+    if (iorbTarget && lpIorb) {
+      var iorbRows = (lpIorb || []).filter(function (row) {
+        return Number(row.horizon) <= 2 && row.term === 'fed_pressure_dv01';
+      }).map(function (row) {
+        return { horizon: row.horizon, coef: row.coef, p_value: row.p_value };
+      });
+      iorbTarget.innerHTML =
+        '<h3>Alternative Repo Spread (TGCR Minus IORB)</h3>' +
+        htmlTable(iorbRows, ['horizon', 'coef', 'p_value'], {
+          coef: function (v) { return Number(v).toFixed(4); },
+          p_value: function (v) { return Number(v).toFixed(4); }
+        }, { horizon: 'Horizon', coef: 'Coef', p_value: 'p' });
+    }
+
+    if (timingTarget && lpEvent && lpPlacebo) {
+      var eventRows = (lpEvent || []).filter(function (row) {
+        return Number(row.horizon) <= 2 && row.term === 'refunding_event_fed_pressure_dv01';
+      });
+      var placeboRows = (lpPlacebo || []).filter(function (row) {
+        return Number(row.horizon) <= 2 && row.term === 'placebo_refunding_fed_pressure_dv01';
+      });
+      var timingRows = eventRows.map(function (row) {
+        var match = placeboRows.filter(function (candidate) { return Number(candidate.horizon) === Number(row.horizon); })[0] || {};
+        return {
+          horizon: row.horizon,
+          refunding_coef: row.coef,
+          refunding_p: row.p_value,
+          placebo_coef: match.coef,
+          placebo_p: match.p_value
+        };
+      });
+      timingTarget.innerHTML =
+        '<h3>Refunding Timing Check</h3>' +
+        htmlTable(timingRows, ['horizon', 'refunding_coef', 'refunding_p', 'placebo_coef', 'placebo_p'], {
+          refunding_coef: function (v) { return Number(v).toFixed(4); },
+          refunding_p: function (v) { return Number(v).toFixed(4); },
+          placebo_coef: function (v) { return v == null || isNaN(v) ? '\u2014' : Number(v).toFixed(4); },
+          placebo_p: function (v) { return v == null || isNaN(v) ? '\u2014' : Number(v).toFixed(4); }
+        }, { horizon: 'Horizon', refunding_coef: 'Refunding Coef', refunding_p: 'Refunding p', placebo_coef: 'Placebo Coef', placebo_p: 'Placebo p' });
+    }
+  }
+
   function corrLookup(matrix, rowKey, colKey) {
     if (!matrix || !matrix.length) return null;
     var cols = Object.keys(matrix[0]);
@@ -1239,6 +1508,7 @@
     buildCashValidationAppendix(d.dailyValidation);
     buildSectoralAbsorbersAppendix(d.sectoralAppendix);
     buildAuctionMixAppendix(d.auctionMixAppendix);
+    buildEventTimingAppendix(d.eventWindowsAppendix, d.lpRefundingEvent, d.lpRefundingPlacebo);
     buildChannelDashboard(d.weekly);
 
     buildRegimeTable(d.regime);
@@ -1251,6 +1521,8 @@
     buildInsights(d.weekly, d.qDesc, d.corr);
     buildMeasurementNotes(d.summary);
     buildManualAuditAppendix(d.manualAudit);
+    buildStatementSignalsAppendix(d.statementSignals);
+    buildAppendixModelTables(d.reactionContinuous, d.reactionNoDebt, d.lpMechanism, d.lpIorb, d.lpRefundingEvent, d.lpRefundingPlacebo);
   }
 
   window.cwRebuildCharts = function () {

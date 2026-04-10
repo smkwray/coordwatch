@@ -1,6 +1,6 @@
 {
   "project": "CoordWatch",
-  "generated_at_utc": "2026-04-04T14:31:51.326623+00:00",
+  "generated_at_utc": "2026-04-10T18:37:02.311724+00:00",
   "quarter_rows": 68,
   "weekly_rows": 1214,
   "runoff_source_counts": {
@@ -17,38 +17,43 @@
   "headline_reaction_terms": [
     {
       "term": "const",
-      "coef": -94.7758023245008,
-      "p_value": 0.0494312199389786
+      "coef": -127.13996041010468,
+      "p_value": 0.0353533205582179
     },
     {
       "term": "expected_soma_redemptions_dv01",
-      "coef": -0.0285893169674238,
-      "p_value": 0.1035958932376177
+      "coef": -0.0263674861643468,
+      "p_value": 0.1598903811648229
     },
     {
       "term": "low_liquidity_prev",
-      "coef": 196.600043734779,
-      "p_value": 0.1902382031601651
+      "coef": 219.21944308928715,
+      "p_value": 0.145230884643766
     },
     {
       "term": "expected_soma_redemptions_x_low_liquidity",
-      "coef": 0.0872463359849577,
-      "p_value": 0.4116906080538399
+      "coef": 0.084321957371008,
+      "p_value": 0.4344287964456915
     },
     {
       "term": "privately_held_net_marketable_borrowing_bn",
-      "coef": 0.3716558824233351,
-      "p_value": 0.0241265546897152
+      "coef": 0.3411987018528301,
+      "p_value": 0.0278429720087892
+    },
+    {
+      "term": "cash_balance_assumption_bn",
+      "coef": 0.1010067566354628,
+      "p_value": 0.4410266851944795
     },
     {
       "term": "debt_limit_flag",
-      "coef": -47.95393251507219,
-      "p_value": 0.3479905063200105
+      "coef": -41.81313401574083,
+      "p_value": 0.380741781078012
     },
     {
       "term": "buyback_offset_dv01",
-      "coef": -0.5561176381737775,
-      "p_value": 0.3529474097771534
+      "coef": -0.6017657609937407,
+      "p_value": 0.314826661000736
     }
   ],
   "measurement_notes": [
@@ -69,8 +74,16 @@
       "detail": "The model interaction terms use low_liquidity / low_liquidity_prev, defined by the project-wide 35th-percentile threshold on system liquidity (reserves + ON RRP). The dashboard QT2 state split uses a separate qt2_low_liquidity field computed as the QT2-subsample median of system liquidity. The two definitions serve different purposes: the model state applies across the full sample, while the dashboard split divides QT2 weeks at the period median."
     },
     {
+      "title": "Econometric appendices",
+      "detail": "The publish bundle includes appendix regressions for debt-limit exclusions, a continuous liquidity-tightness interaction, an alternative repo spread versus IORB, a coupon-versus-bills mechanism split, and refunding-versus-placebo event pulse estimates."
+    },
+    {
       "title": "Manual review",
       "detail": "Episode windows and selected refunding inputs use manual review files. Debt-limit quarters are flagged (debt_limit_flag = 1) for separate inspection but remain in the regression sample."
+    },
+    {
+      "title": "Treasury statement signals",
+      "detail": "Quarter-level statement flags are extracted from the official Treasury refunding statement URLs in the manual override file, cached locally, and summarized as TBAC, market-function, bill-flexibility, cash-management, buyback, and coupon-guidance indicators."
     },
     {
       "title": "Sample coverage",
@@ -93,6 +106,10 @@
       "detail": "The auction appendix groups Treasury auction results by issue date and reports realized bill, coupon, and FRN shares plus fixed-rate coupon tenor shares."
     },
     {
+      "title": "Event windows appendix",
+      "detail": "The event appendix aligns weekly repo spreads, dealer inventories, system liquidity, and Fed pressure around actual refunding weeks and quarter-specific placebo weeks to separate timing effects from broad quarterly conditions."
+    },
+    {
       "title": "Interpretation",
       "detail": "The site reports balance-sheet quantities, market variables, and model estimates from the same public data bundle. Regression tables summarize statistical relationships in the published sample."
     }
@@ -107,24 +124,34 @@
     "quarterly_descriptive.json",
     "correlation_matrix.json",
     "reaction_function_main.json",
+    "reaction_function_continuous_liquidity.json",
+    "reaction_function_no_debt_limit.json",
     "main_lp_dealer.json",
     "main_lp_repo.json",
+    "appendix_lp_repo_iorb.json",
+    "appendix_lp_repo_mechanism.json",
+    "appendix_lp_repo_no_debt_limit.json",
+    "appendix_lp_repo_continuous_liquidity.json",
+    "appendix_lp_repo_refunding_event.json",
+    "appendix_lp_repo_refunding_placebo.json",
+    "treasury_statement_signals.json",
     "manual_input_audit.json",
     "daily_mechanics_appendix.json",
     "daily_validation_appendix.json",
     "sectoral_absorbers_appendix.json",
-    "auction_mix_appendix.json"
+    "auction_mix_appendix.json",
+    "event_windows_appendix.json"
   ],
   "artifact_hashes": [
     {
       "file": "weekly_panel.json",
-      "sha256": "8e8a3a1916590207b0c0344e8308acff2b63058a7d3023b645394cf0f9b62212",
-      "size_bytes": 889142
+      "sha256": "48c402dfa1b61b98bff36b66936f413cd248f1d68826f31fbb6151059bb7ae01",
+      "size_bytes": 1422832
     },
     {
       "file": "quarterly_panel.json",
-      "sha256": "211bf6846218b814928cd362a0619b3e0e6bf9d2e79e1bec3831232a21e501ef",
-      "size_bytes": 88931
+      "sha256": "afd51f2899ad6a92ad680fade2f8a78885a9839f78ceff8fd8bbf913e50db5a8",
+      "size_bytes": 138938
     },
     {
       "file": "episode_registry.json",
@@ -148,8 +175,8 @@
     },
     {
       "file": "quarterly_descriptive.json",
-      "sha256": "5be78a7462e5488a40e6fc1c8ba5d5e54ef92140056ada4a3aa4298e8bce896a",
-      "size_bytes": 34879
+      "sha256": "5e9773f53cb8f36519716af7dab55443a8a98fdcfd5edf33db1e9edd1821b5c8",
+      "size_bytes": 35015
     },
     {
       "file": "correlation_matrix.json",
@@ -158,8 +185,18 @@
     },
     {
       "file": "reaction_function_main.json",
-      "sha256": "0a9aeec15bbe4cf5604b03df7183167c4489462346967faa3dd07d46f9e408ee",
-      "size_bytes": 2222
+      "sha256": "944eea4ba78c9fd1f767576ffd0f35c09645169d0dd714d7c554b90ee9a16fe4",
+      "size_bytes": 2546
+    },
+    {
+      "file": "reaction_function_continuous_liquidity.json",
+      "sha256": "3ca926e25771f9e7608cf959a32bac8b7ae0bb7756700b4aa3cbc9cbc73f7a32",
+      "size_bytes": 2562
+    },
+    {
+      "file": "reaction_function_no_debt_limit.json",
+      "sha256": "5fde5acd132261e1aa60ba7a2f1fe2a91c86eb49b8e17ac4997df1a86ae34be8",
+      "size_bytes": 2236
     },
     {
       "file": "main_lp_dealer.json",
@@ -170,6 +207,41 @@
       "file": "main_lp_repo.json",
       "sha256": "b680c5f23e1404317e0ab055e8f198672c46a5025fd2898d95fca87c0fef97ff",
       "size_bytes": 6693
+    },
+    {
+      "file": "appendix_lp_repo_iorb.json",
+      "sha256": "f3ec7b8d8461c490709b5b2eeee698786172d53291a3cbf71817b7c3a5797380",
+      "size_bytes": 6152
+    },
+    {
+      "file": "appendix_lp_repo_mechanism.json",
+      "sha256": "28a6e0911aa77ba55a207240fbef58848fd7aad33d8dd53d2488bae431b2ab08",
+      "size_bytes": 13356
+    },
+    {
+      "file": "appendix_lp_repo_no_debt_limit.json",
+      "sha256": "67a42f4e28885adb7d7d6489c2bc323eb38c0721f714d10e535760cad81d8acf",
+      "size_bytes": 6698
+    },
+    {
+      "file": "appendix_lp_repo_continuous_liquidity.json",
+      "sha256": "b2b540ab1f2cae03b38490b3b1bb4c31b34fd82a74ac99bbd633f3f546918bdb",
+      "size_bytes": 6775
+    },
+    {
+      "file": "appendix_lp_repo_refunding_event.json",
+      "sha256": "a399e04732c6ce8027c784bd07245cedb02d6ae9c70c84f03492cd18dd6939a1",
+      "size_bytes": 6341
+    },
+    {
+      "file": "appendix_lp_repo_refunding_placebo.json",
+      "sha256": "d7ca8b4791b806500f162fb50fb583ebb07fd32937f9025fa268dca8275b810f",
+      "size_bytes": 6381
+    },
+    {
+      "file": "treasury_statement_signals.json",
+      "sha256": "28d73b6d1ced7b046e238bc7e9b1da01e9f65cfbc2192a2fb42fc699f08b5835",
+      "size_bytes": 43798
     },
     {
       "file": "manual_input_audit.json",
@@ -195,6 +267,11 @@
       "file": "auction_mix_appendix.json",
       "sha256": "71466f87574ac123baaf5fc4ffcbc20405433ec970dcb7ac9d1b95128df2d552",
       "size_bytes": 69743
+    },
+    {
+      "file": "event_windows_appendix.json",
+      "sha256": "ad44e18b255ef1515d81a943cd70f869a52e0faaaf7c9b65632a8ece9c9a38da",
+      "size_bytes": 477488
     }
   ]
 }

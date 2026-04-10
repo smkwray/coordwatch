@@ -28,6 +28,22 @@ def add_liquidity_state(
     return out
 
 
+def add_liquidity_tightness_zscore(
+    df: pd.DataFrame,
+    liquidity_col: str = "system_liquidity_bn",
+    output_col: str = "liquidity_tightness_z",
+) -> pd.DataFrame:
+    out = df.copy()
+    values = pd.to_numeric(out[liquidity_col], errors="coerce")
+    mean = float(values.mean()) if values.notna().any() else 0.0
+    std = float(values.std(ddof=0)) if values.notna().any() else 0.0
+    if std == 0 or np.isnan(std):
+        out[output_col] = 0.0
+        return out
+    out[output_col] = (-(values - mean) / std).round(4)
+    return out
+
+
 def add_qt2_liquidity_state(
     df: pd.DataFrame,
     liquidity_col: str = "system_liquidity_bn",

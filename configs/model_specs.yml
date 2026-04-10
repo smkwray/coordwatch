@@ -7,11 +7,34 @@ reaction_function:
     - low_liquidity_prev
     - expected_soma_redemptions_x_low_liquidity
     - privately_held_net_marketable_borrowing_bn
+    - cash_balance_assumption_bn
     - debt_limit_flag
     - buyback_offset_dv01
   robust_cov: HC3
-  # cash_balance_assumption_bn is omitted from the public baseline until the
-  # statement-sourced series is fully backfilled and reviewed across quarters.
+
+reaction_function_appendices:
+  continuous_liquidity:
+    dependent: mix_shock_dv01
+    regressors:
+      - expected_soma_redemptions_dv01
+      - liquidity_tightness_q_z_prev
+      - expected_soma_redemptions_x_liquidity_tightness_z
+      - privately_held_net_marketable_borrowing_bn
+      - cash_balance_assumption_bn
+      - debt_limit_flag
+      - buyback_offset_dv01
+    robust_cov: HC3
+  no_debt_limit:
+    dependent: mix_shock_dv01
+    regressors:
+      - expected_soma_redemptions_dv01
+      - low_liquidity_prev
+      - expected_soma_redemptions_x_low_liquidity
+      - privately_held_net_marketable_borrowing_bn
+      - cash_balance_assumption_bn
+      - buyback_offset_dv01
+    robust_cov: HC3
+    exclude_debt_limit: true
 
 local_projections:
   horizons: [0, 1, 2, 3, 4, 5, 6, 7, 8]
@@ -26,3 +49,80 @@ local_projections:
     - quarter_end_flag
   cov_type: HAC
   hac_lags: 4
+
+local_projection_appendices:
+  repo_iorb:
+    outcome: repo_spread_iorb_bp
+    shock_terms:
+      - fed_pressure_dv01
+      - fed_pressure_x_low_liquidity
+    controls:
+      - dealer_inventory_lag1
+      - repo_spread_iorb_lag1
+      - tga_change_bn
+      - quarter_end_flag
+    cov_type: HAC
+    hac_lags: 4
+  repo_mechanism:
+    outcome: repo_spread_bp
+    shock_terms:
+      - coupon_dv01_shock
+      - bill_dv01_offset
+      - coupon_dv01_x_low_liquidity
+      - bill_dv01_x_low_liquidity
+    controls:
+      - dealer_inventory_lag1
+      - repo_spread_lag1
+      - tga_change_bn
+      - quarter_end_flag
+    cov_type: HAC
+    hac_lags: 4
+  repo_no_debt_limit:
+    outcome: repo_spread_bp
+    shock_terms:
+      - fed_pressure_dv01
+      - fed_pressure_x_low_liquidity
+    controls:
+      - dealer_inventory_lag1
+      - repo_spread_lag1
+      - tga_change_bn
+      - quarter_end_flag
+    cov_type: HAC
+    hac_lags: 4
+    exclude_debt_limit: true
+  repo_continuous_liquidity:
+    outcome: repo_spread_bp
+    shock_terms:
+      - fed_pressure_dv01
+      - fed_pressure_x_liquidity_tightness_z
+    controls:
+      - dealer_inventory_lag1
+      - repo_spread_lag1
+      - tga_change_bn
+      - quarter_end_flag
+    cov_type: HAC
+    hac_lags: 4
+  repo_refunding_event:
+    outcome: repo_spread_bp
+    shock_terms:
+      - refunding_event_fed_pressure_dv01
+      - refunding_event_fed_pressure_x_low_liquidity
+    controls:
+      - dealer_inventory_lag1
+      - repo_spread_lag1
+      - tga_change_bn
+      - quarter_end_flag
+    cov_type: HAC
+    hac_lags: 4
+  repo_refunding_placebo:
+    outcome: repo_spread_bp
+    shock_terms:
+      - placebo_refunding_fed_pressure_dv01
+      - placebo_refunding_fed_pressure_x_low_liquidity
+    controls:
+      - dealer_inventory_lag1
+      - repo_spread_lag1
+      - tga_change_bn
+      - quarter_end_flag
+    cov_type: HAC
+    hac_lags: 4

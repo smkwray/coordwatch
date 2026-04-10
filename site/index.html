@@ -23,6 +23,7 @@
       <li><a href="#absorption">Dealers</a></li>
       <li><a href="#sectors">Holders</a></li>
       <li><a href="#issuance">Auction mix</a></li>
+      <li><a href="#timing">Timing</a></li>
       <li><a href="#cost">Repo</a></li>
       <li><a href="#regimes">Episodes</a></li>
       <li><a href="#notes">Methods</a></li>
@@ -225,6 +226,29 @@
     </div>
   </section>
 
+  <section class="section" id="timing">
+    <div class="section-header">
+      <h2>Refunding Timing</h2>
+      <span class="section-tag">Appendix</span>
+    </div>
+    <p>This appendix aligns weekly repo spreads and Fed-pressure measures around actual refunding weeks, then compares those windows with quarter-specific placebo weeks. It is meant to separate timing from the broader quarterly state.</p>
+    <div class="chart-pair">
+      <div class="chart-container">
+        <p class="loading">Loading event-time repo spread data&hellip;</p>
+        <canvas id="eventRepoChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <p class="loading">Loading event-time Fed pressure data&hellip;</p>
+        <canvas id="eventPressureChart"></canvas>
+      </div>
+    </div>
+    <div id="eventWindowSummaryTable"><p class="loading">Loading event window summary&hellip;</p></div>
+    <div id="eventLpAppendixTable"><p class="loading">Loading event LP comparison&hellip;</p></div>
+    <div class="insight-box" id="eventTimingInsight">
+      <p class="loading">Loading timing insight&hellip;</p>
+    </div>
+  </section>
+
   <!-- ========== Repo Spreads ========== -->
   <section class="section" id="cost">
     <div class="section-header">
@@ -272,6 +296,7 @@
             <div id="reproNotes" class="card"><p class="loading">Loading artifact metadata&hellip;</p></div>
           </div>
           <div id="manualAuditAppendix" class="card provenance-card"><p class="loading">Loading manual-input appendix&hellip;</p></div>
+          <div id="statementSignalsAppendix" class="card provenance-card"><p class="loading">Loading statement-signal appendix&hellip;</p></div>
         </div>
       </div>
     </div>
@@ -302,6 +327,19 @@
           <p style="margin-bottom:12px;color:var(--c-text-muted);font-size:0.9rem">Multi-horizon responses of dealer inventories and repo spreads to fed_pressure_dv01 shocks, with HAC standard errors.</p>
           <div id="lpDealerTable"><p class="loading">Loading&hellip;</p></div>
           <div id="lpRepoTable" style="margin-top:16px"><p class="loading">Loading&hellip;</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="collapsible">
+      <div class="collapsible-header">Appendix Checks</div>
+      <div class="collapsible-body">
+        <div style="padding:16px">
+          <p style="margin-bottom:12px;color:var(--c-text-muted);font-size:0.9rem">These appendix tables summarize the main robustness and mechanism checks now included in the public bundle: continuous liquidity, alternative repo spread, coupon-vs-bills split, and refunding timing.</p>
+          <div id="reactionAppendixTable"><p class="loading">Loading reaction appendices&hellip;</p></div>
+          <div id="lpAppendixMechanismTable" style="margin-top:16px"><p class="loading">Loading mechanism appendix&hellip;</p></div>
+          <div id="lpAppendixIorbTable" style="margin-top:16px"><p class="loading">Loading IORB appendix&hellip;</p></div>
+          <div id="lpAppendixTimingTable" style="margin-top:16px"><p class="loading">Loading timing appendix&hellip;</p></div>
         </div>
       </div>
     </div>

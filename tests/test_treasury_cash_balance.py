@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from coordwatch.utils.treasury import extract_cash_balance_assumption
+from coordwatch.utils.treasury import extract_cash_balance_assumption, extract_statement_signal_hints
 
 
 def test_extract_cash_balance_assumption_single_month() -> None:
@@ -23,3 +23,18 @@ def test_extract_cash_balance_assumption_month_pair() -> None:
 def test_extract_cash_balance_assumption_generic_fallback() -> None:
     text = "Treasury assumes a cash balance of 350 billion at quarter-end."
     assert extract_cash_balance_assumption(text, quarter="2014Q2") == 350.0
+
+
+def test_extract_statement_signal_hints_flags_multiple_channels() -> None:
+    text = (
+        "Treasury presented the quarterly refunding statement after consulting the Treasury Borrowing Advisory Committee. "
+        "Officials emphasized regular and predictable issuance, market functioning, and cash management. "
+        "Bill issuance will remain flexible and buyback operations will continue."
+    )
+    signals = extract_statement_signal_hints(text)
+    assert signals["tbac_mention_flag"] == 1
+    assert signals["market_function_mention_flag"] == 1
+    assert signals["regular_predictable_mention_flag"] == 1
+    assert signals["bill_flexibility_mention_flag"] == 1
+    assert signals["cash_management_mention_flag"] == 1
+    assert signals["buyback_mention_flag"] == 1

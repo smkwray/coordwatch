@@ -497,6 +497,90 @@ def _build_auction_mix_appendix(quarter: pd.DataFrame) -> dict | None:
     }
 
 
+def _build_event_windows_appendix(weekly: pd.DataFrame) -> dict | None:
+    if weekly.empty or "week" not in weekly.columns:
+        return None
+    work = weekly.copy()
+    work["week"] = pd.to_datetime(work["week"], errors="coerce")
+    work = work.dropna(subset=["week"]).sort_values("week").reset_index(drop=True)
+    metrics = [
+        col for col in [
+            "repo_spread_bp",
+            "dealer_inventory_bn",
+            "fed_pressure_dv01",
+            "system_liquidity_bn",
+            "qt_runoff_dv01",
+        ] if col in work.columns
+    ]
+    if not metrics:
+        return None
+
+    event_specs = [
+        ("refunding_event", "refunding_event_week_flag", "Actual quarterly refunding weeks aligned to the Wednesday panel."),
+        ("placebo_refunding", "placebo_refunding_week_flag", "Quarter-specific placebo weeks selected away from the refunding week."),
+    ]
+    aligned_frames = []
+    summary_frames = []
+    event_rows = []
+    radius = 4
+    for event_type, flag_col, description in event_specs:
+        if flag_col not in work.columns:
+            continue
+        event_weeks = (
+            work.loc[pd.to_numeric(work[flag_col], errors="coerce").fillna(0).astype(int) == 1, ["quarter", "week"]]
+            .dropna(subset=["week"])
+            .drop_duplicates()
+            .sort_values("week")
+            .reset_index(drop=True)
+        )
+        if event_weeks.empty:
+            continue
+        event_rows.extend(
+            {
+                "event_type": event_type,
+                "quarter": row["quarter"],
+                "event_week": row["week"].strftime("%Y-%m-%d"),
+                "description": description,
+            }
+            for _, row in event_weeks.iterrows()
+        )
+        event_aligned = []
+        for _, row in event_weeks.iterrows():
+            event_week = row["week"]
+            sub = work[
+                (work["week"] >= event_week - pd.Timedelta(weeks=radius))
+                & (work["week"] <= event_week + pd.Timedelta(weeks=radius))
+            ][["week", "quarter"] + metrics].copy()
+            sub["event_type"] = event_type
+            sub["event_quarter"] = row["quarter"]
+            sub["event_week"] = event_week
+            sub["rel_week"] = ((sub["week"] - event_week).dt.days / 7).round().astype(int)
+            event_aligned.append(sub)
+        event_frame = pd.concat(event_aligned, ignore_index=True)
+        aligned_frames.append(event_frame)
+        mean_frame = event_frame.groupby("rel_week", as_index=False)[metrics].mean(numeric_only=True)
+        mean_frame["event_type"] = event_type
+        mean_frame["n_events"] = int(len(event_weeks))
+        summary_frames.append(mean_frame)
+
+    if not aligned_frames or not summary_frames:
+        return None
+    aligned = pd.concat(aligned_frames, ignore_index=True)
+    summary = pd.concat(summary_frames, ignore_index=True)
+    return {
+        "metadata": {
+            "window_radius_weeks": radius,
+            "notes": [
+                "Event windows are aligned on the Wednesday weekly panel, using refunding-week flags and deterministic quarter-specific placebo weeks.",
+                "Summary rows average each metric across all events of a given type at the same relative-week offset.",
+            ],
+        },
+        "events": event_rows,
+        "aligned_series": _ts_to_str(aligned).to_dict(orient="records"),
+        "summary": _ts_to_str(summary).to_dict(orient="records"),
+    }
+
+
 def main() -> None:
     ensure_repo_dirs()
 
@@ -510,11 +594,27 @@ def main() -> None:
     reaction = pd.read_csv(OUTPUTS_TABLES_DIR / "reaction_function_main.csv")
     lp_dealer = pd.read_csv(OUTPUTS_TABLES_DIR / "main_lp_dealer.csv")
     lp_repo = pd.read_csv(OUTPUTS_TABLES_DIR / "main_lp_repo.csv")
+    appendix_reaction_files = [
+        "reaction_function_continuous_liquidity",
+        "reaction_function_no_debt_limit",
+    ]
+    appendix_lp_files = [
+        "appendix_lp_repo_iorb",
+        "appendix_lp_repo_mechanism",
+        "appendix_lp_repo_no_debt_limit",
+        "appendix_lp_repo_continuous_liquidity",
+        "appendix_lp_repo_refunding_event",
+        "appendix_lp_repo_refunding_placebo",
+    ]
 
     # Publish econometric tables
     publish_table(reaction, "reaction_function_main")
     publish_table(lp_dealer, "main_lp_dealer")
     publish_table(lp_repo, "main_lp_repo")
+    for name in appendix_reaction_files + appendix_lp_files:
+        path = OUTPUTS_TABLES_DIR / f"{name}.csv"
+        if path.exists():
+            publish_table(pd.read_csv(path), name)
 
     # Publish episode registry
     publish_table(_ts_to_str(episodes), "episode_registry")
@@ -523,12 +623,17 @@ def main() -> None:
     # Weekly: select key columns to keep JSON size manageable
     weekly_cols = [
         "week", "soma_treasuries_bn", "reserves_bn", "tga_bn", "on_rrp_bn",
-        "dealer_inventory_bn", "repo_spread_bp", "system_liquidity_bn",
-        "low_liquidity", "qt2_low_liquidity",
+        "dealer_inventory_bn", "repo_spread_bp", "repo_spread_iorb_bp", "system_liquidity_bn",
+        "low_liquidity", "qt2_low_liquidity", "liquidity_tightness_z",
         "qt_runoff_dv01", "qt_runoff_source", "qt_runoff_proxy_bn",
         "coupon_dv01_shock", "bill_dv01_offset", "mix_shock_dv01",
+        "coupon_dv01_x_low_liquidity", "bill_dv01_x_low_liquidity",
         "buyback_offset_dv01", "expected_soma_redemptions_dv01",
-        "duration_pressure_dv01", "fed_pressure_dv01",
+        "duration_pressure_dv01", "fed_pressure_dv01", "fed_pressure_x_low_liquidity",
+        "fed_pressure_x_liquidity_tightness_z",
+        "refunding_event_week_flag", "placebo_refunding_week_flag",
+        "refunding_event_fed_pressure_dv01", "placebo_refunding_fed_pressure_dv01",
+        "debt_limit_flag",
         "quarter", "calendar_quarter", "input_source",
     ]
     weekly_cols = [c for c in weekly_cols if c in weekly.columns]
@@ -554,9 +659,48 @@ def main() -> None:
         write_json(PUBLISH_DIR / "auction_mix_appendix.json", auction_mix_appendix)
         write_json(ROOT / "site" / "data" / "auction_mix_appendix.json", auction_mix_appendix)
 
-    # Quarterly panel: full (drop classification_prior — not meaningful in published data)
-    quarter_pub = quarter.drop(columns=["classification_prior"], errors="ignore")
+    event_windows_appendix = _build_event_windows_appendix(weekly)
+    if event_windows_appendix is not None:
+        write_json(PUBLISH_DIR / "event_windows_appendix.json", event_windows_appendix)
+        write_json(ROOT / "site" / "data" / "event_windows_appendix.json", event_windows_appendix)
+
+    # Quarterly panel: keep public research fields only; drop internal review/source-local columns.
+    quarter_pub = quarter.drop(
+        columns=[
+            "classification_prior",
+            "local_path",
+            "download_status",
+            "source_page",
+            "url",
+            "text",
+            "reviewer_notes",
+            "verification_status",
+        ],
+        errors="ignore",
+    )
     publish_table(_ts_to_str(quarter_pub), "quarterly_panel")
+    statement_signal_cols = [
+        col for col in [
+            "quarter",
+            "refunding_date",
+            "statement_title",
+            "statement_url",
+            "statement_text_length",
+            "statement_word_count",
+            "tbac_mention_flag",
+            "market_function_mention_flag",
+            "regular_predictable_mention_flag",
+            "bill_flexibility_mention_flag",
+            "cash_management_mention_flag",
+            "buyback_mention_flag",
+            "coupon_size_mention_flag",
+            "soma_explicit_mention_flag",
+            "bills_shock_absorber_flag",
+            "statement_text_source",
+        ] if col in quarter.columns
+    ]
+    if statement_signal_cols:
+        publish_table(_ts_to_str(quarter[statement_signal_cols]), "treasury_statement_signals")
 
     # Publish descriptive tables
     for table_name in ["regime_summary", "episode_summary", "quarterly_descriptive", "correlation_matrix"]:
@@ -583,13 +727,23 @@ def main() -> None:
         "quarterly_descriptive.json",
         "correlation_matrix.json",
         "reaction_function_main.json",
+        "reaction_function_continuous_liquidity.json",
+        "reaction_function_no_debt_limit.json",
         "main_lp_dealer.json",
         "main_lp_repo.json",
+        "appendix_lp_repo_iorb.json",
+        "appendix_lp_repo_mechanism.json",
+        "appendix_lp_repo_no_debt_limit.json",
+        "appendix_lp_repo_continuous_liquidity.json",
+        "appendix_lp_repo_refunding_event.json",
+        "appendix_lp_repo_refunding_placebo.json",
+        "treasury_statement_signals.json",
         "manual_input_audit.json",
         "daily_mechanics_appendix.json",
         "daily_validation_appendix.json",
         "sectoral_absorbers_appendix.json",
         "auction_mix_appendix.json",
+        "event_windows_appendix.json",
     ]
     artifact_hashes = []
     for name in data_files:
@@ -639,8 +793,16 @@ def main() -> None:
                 "detail": "The model interaction terms use low_liquidity / low_liquidity_prev, defined by the project-wide 35th-percentile threshold on system liquidity (reserves + ON RRP). The dashboard QT2 state split uses a separate qt2_low_liquidity field computed as the QT2-subsample median of system liquidity. The two definitions serve different purposes: the model state applies across the full sample, while the dashboard split divides QT2 weeks at the period median."
             },
             {
+                "title": "Econometric appendices",
+                "detail": "The publish bundle includes appendix regressions for debt-limit exclusions, a continuous liquidity-tightness interaction, an alternative repo spread versus IORB, a coupon-versus-bills mechanism split, and refunding-versus-placebo event pulse estimates."
+            },
+            {
                 "title": "Manual review",
                 "detail": "Episode windows and selected refunding inputs use manual review files. Debt-limit quarters are flagged (debt_limit_flag = 1) for separate inspection but remain in the regression sample."
+            },
+            {
+                "title": "Treasury statement signals",
+                "detail": "Quarter-level statement flags are extracted from the official Treasury refunding statement URLs in the manual override file, cached locally, and summarized as TBAC, market-function, bill-flexibility, cash-management, buyback, and coupon-guidance indicators."
             },
             {
                 "title": "Sample coverage",
@@ -661,6 +823,10 @@ def main() -> None:
             {
                 "title": "Auction mix appendix",
                 "detail": "The auction appendix groups Treasury auction results by issue date and reports realized bill, coupon, and FRN shares plus fixed-rate coupon tenor shares."
+            },
+            {
+                "title": "Event windows appendix",
+                "detail": "The event appendix aligns weekly repo spreads, dealer inventories, system liquidity, and Fed pressure around actual refunding weeks and quarter-specific placebo weeks to separate timing effects from broad quarterly conditions."
             },
             {
                 "title": "Interpretation",

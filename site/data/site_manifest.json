@@ -1,21 +1,31 @@
 {
   "data_files": [
+    "appendix_lp_repo_continuous_liquidity.json",
+    "appendix_lp_repo_iorb.json",
+    "appendix_lp_repo_mechanism.json",
+    "appendix_lp_repo_no_debt_limit.json",
+    "appendix_lp_repo_refunding_event.json",
+    "appendix_lp_repo_refunding_placebo.json",
     "auction_mix_appendix.json",
     "correlation_matrix.json",
     "daily_mechanics_appendix.json",
     "daily_validation_appendix.json",
     "episode_registry.json",
     "episode_summary.json",
+    "event_windows_appendix.json",
     "main_lp_dealer.json",
     "main_lp_repo.json",
     "manual_input_audit.json",
     "qt_comparison_summary.json",
     "quarterly_descriptive.json",
     "quarterly_panel.json",
+    "reaction_function_continuous_liquidity.json",
     "reaction_function_main.json",
+    "reaction_function_no_debt_limit.json",
     "regime_summary.json",
     "sectoral_absorbers_appendix.json",
     "summary.json",
+    "treasury_statement_signals.json",
     "weekly_panel.json"
   ]
 }

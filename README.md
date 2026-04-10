@@ -19,6 +19,8 @@ CoordWatch follows Fed runoff, Treasury issuance composition, TGA management, ON
 5. Do buybacks act as a release valve for duration pressure?
 6. How does ON RRP drainage change money-market sensitivity?
 7. How do lower-buffer states differ from higher-buffer states?
+8. What do official refunding statements say about bills, cash management, buybacks, and market function?
+9. Do actual refunding weeks look different from quarter-specific placebo weeks?
 
 ## Data
 
@@ -31,6 +33,7 @@ All data from free public sources. No proprietary data required.
 | Z.1 sectoral Treasury holdings appendix | FRED |
 | Primary dealer statistics | NY Fed Markets API |
 | Quarterly refunding | Treasury |
+| Refunding statement text and signal appendix | Treasury |
 | Auction results and realized mix appendix | Treasury Fiscal Data |
 | Daily cash and debt cross-check appendix | Treasury Fiscal Data |
 | Buyback operations | TreasuryDirect |
@@ -51,6 +54,7 @@ make mvp
 
 ```
 make download      Download from public sources
+make extract       Build refunding statement index + text signals
 make panel         Build quarterly + weekly panels
 make episodes      Classify quarters by alignment state
 make descriptive   Build regime/episode summary tables
@@ -66,8 +70,16 @@ make verify        Check all artifacts present
 1. Fed runoff and liquidity buffers.
 2. Debt-ceiling cash mechanics and the DTS cross-check.
 3. Duration burden, dealer balance sheets, and repo spreads.
-4. Treasury holders and realized auction mix appendices.
-5. Regression results.
+4. Treasury holders, realized auction mix, refunding-statement signals, and refunding-vs-placebo timing appendices.
+5. Baseline regressions plus appendix checks for continuous liquidity, alternative repo spread, coupon-vs-bills mechanism, and refunding timing.
+
+## Current Scope
+
+CoordWatch is strongest as an operational-interdependence project, not a legal or constitutional independence project.
+
+- The core repo shows how Fed runoff, Treasury issuance mix, cash management, and funding-market conditions interact in the same public-data bundle.
+- The statement-signal appendix adds a coarse institutional layer from official refunding statements.
+- The refunding-timing appendix compares actual refunding weeks with quarter-specific placebo weeks, but it should be read as timing evidence, not a definitive causal design on its own.
 
 ## Conventions
 

@@ -17,14 +17,21 @@ from coordwatch.paths import OUTPUTS_TABLES_DIR, PROCESSED_DIR
 configure_logging()
 logger = get_logger(__name__)
 
+REACTION_OUTPUTS = [
+    ("reaction_function", "reaction_function_main"),
+    ("continuous_liquidity", "reaction_function_continuous_liquidity"),
+    ("no_debt_limit", "reaction_function_no_debt_limit"),
+]
+
 
 def main() -> None:
     quarter = read_best_table(PROCESSED_DIR / "refunding_panel.parquet")
-    bundle = run_reaction_function(quarter)
-    write_csv(bundle.coefficients, OUTPUTS_TABLES_DIR / "reaction_function_main.csv")
-    write_csv(bundle.fitted, OUTPUTS_TABLES_DIR / "reaction_function_fitted.csv")
-    write_text(OUTPUTS_TABLES_DIR / "reaction_function_summary.txt", bundle.summary_text)
-    logger.info("Wrote reaction-function outputs")
+    for spec_name, stem in REACTION_OUTPUTS:
+        bundle = run_reaction_function(quarter, spec_name=spec_name)
+        write_csv(bundle.coefficients, OUTPUTS_TABLES_DIR / f"{stem}.csv")
+        write_csv(bundle.fitted, OUTPUTS_TABLES_DIR / f"{stem}_fitted.csv")
+        write_text(OUTPUTS_TABLES_DIR / f"{stem}_summary.txt", bundle.summary_text)
+    logger.info("Wrote %s reaction-function output tables", len(REACTION_OUTPUTS))
 
 
 if __name__ == "__main__":

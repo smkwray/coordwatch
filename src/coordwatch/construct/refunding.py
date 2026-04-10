@@ -109,17 +109,41 @@ def attach_quarterly_liquidity_state(
 
     threshold = float(valid.quantile(quantile))
     q_liq["low_liquidity"] = (q_liq["system_liquidity_q_bn"] <= threshold).astype(int)
+    liq_std = float(valid.std(ddof=0))
+    if liq_std == 0 or np.isnan(liq_std):
+        q_liq["liquidity_tightness_q_z"] = 0.0
+    else:
+        q_liq["liquidity_tightness_q_z"] = (-(q_liq["system_liquidity_q_bn"] - float(valid.mean())) / liq_std).round(4)
     q_liq = q_liq.sort_values("quarter").reset_index(drop=True)
     q_liq["low_liquidity_prev"] = q_liq["low_liquidity"].shift(1).fillna(0).astype(int)
+    q_liq["liquidity_tightness_q_z_prev"] = q_liq["liquidity_tightness_q_z"].shift(1).fillna(0).round(4)
 
-    drop_cols = [c for c in ["system_liquidity_q_bn", "low_liquidity", "low_liquidity_prev", "expected_soma_redemptions_x_low_liquidity"] if c in out.columns]
+    drop_cols = [
+        c for c in [
+            "system_liquidity_q_bn",
+            "low_liquidity",
+            "low_liquidity_prev",
+            "liquidity_tightness_q_z_prev",
+            "expected_soma_redemptions_x_low_liquidity",
+            "expected_soma_redemptions_x_liquidity_tightness_z",
+        ] if c in out.columns
+    ]
     if drop_cols:
         out = out.drop(columns=drop_cols)
-    out = out.merge(q_liq[["quarter", "system_liquidity_q_bn", "low_liquidity_prev"]], on="quarter", how="left")
+    out = out.merge(
+        q_liq[["quarter", "system_liquidity_q_bn", "low_liquidity_prev", "liquidity_tightness_q_z_prev"]],
+        on="quarter",
+        how="left",
+    )
     out["low_liquidity_prev"] = pd.to_numeric(out["low_liquidity_prev"], errors="coerce").fillna(0).astype(int)
+    out["liquidity_tightness_q_z_prev"] = pd.to_numeric(out["liquidity_tightness_q_z_prev"], errors="coerce").fillna(0).round(4)
     out["expected_soma_redemptions_x_low_liquidity"] = (
         pd.to_numeric(out["expected_soma_redemptions_dv01"], errors="coerce").fillna(0)
         * out["low_liquidity_prev"]
+    ).round(2)
+    out["expected_soma_redemptions_x_liquidity_tightness_z"] = (
+        pd.to_numeric(out["expected_soma_redemptions_dv01"], errors="coerce").fillna(0)
+        * out["liquidity_tightness_q_z_prev"]
     ).round(2)
     return out
 
@@ -186,6 +210,41 @@ def _prep_real_refunding_base(extracted: pd.DataFrame, manual: pd.DataFrame) -> 
     base["mix_shock_dv01"] = (base["coupon_dv01_shock"].fillna(0) - base["bill_dv01_offset"].fillna(0)).round(2)
     base["clean_sample_flag"] = pd.to_numeric(base.get("clean_sample_flag"), errors="coerce").fillna(1).astype(int)
     base["debt_limit_flag"] = pd.to_numeric(base.get("debt_limit_flag"), errors="coerce").fillna(0).astype(int)
+    signal_cols = [
+        "statement_text_length",
+        "statement_word_count",
+        "tbac_mention_flag",
+        "market_function_mention_flag",
+        "regular_predictable_mention_flag",
+        "bill_flexibility_mention_flag",
+        "cash_management_mention_flag",
+        "buyback_mention_flag",
+        "coupon_size_mention_flag",
+        "soma_explicit_mention_flag",
+        "bills_shock_absorber_flag",
+    ]
+    base = _coerce_numeric(base, signal_cols)
+    for col in signal_cols:
+        if col not in base.columns:
+            base[col] = 0
+    for col in ["statement_text_length", "statement_word_count"]:
+        base[col] = pd.to_numeric(base[col], errors="coerce").fillna(0).astype(int)
+    for col in [
+        "tbac_mention_flag",
+        "market_function_mention_flag",
+        "regular_predictable_mention_flag",
+        "bill_flexibility_mention_flag",
+        "cash_management_mention_flag",
+        "buyback_mention_flag",
+        "coupon_size_mention_flag",
+        "soma_explicit_mention_flag",
+        "bills_shock_absorber_flag",
+    ]:
+        base[col] = pd.to_numeric(base[col], errors="coerce").fillna(0).astype(int)
+    base["statement_text_source"] = base.get(
+        "statement_text_source",
+        pd.Series("manual_override", index=base.index, dtype=object),
+    ).fillna("manual_override")
     base["classification_prior"] = base.get("classification_prior", pd.Series(index=base.index, dtype=object)).fillna("review_required")
     return base
 
@@ -241,6 +300,18 @@ def build_refunding_panel(prefer_real: bool = True, output_dir: Path | None = No
         "buyback_offset_dv01",
         "mix_shock_dv01",
         "expected_soma_redemptions_dv01",
+        "statement_text_length",
+        "statement_word_count",
+        "tbac_mention_flag",
+        "market_function_mention_flag",
+        "regular_predictable_mention_flag",
+        "bill_flexibility_mention_flag",
+        "cash_management_mention_flag",
+        "buyback_mention_flag",
+        "coupon_size_mention_flag",
+        "soma_explicit_mention_flag",
+        "bills_shock_absorber_flag",
+        "statement_text_source",
         "low_liquidity_prev",
         "expected_soma_redemptions_x_low_liquidity",
         "classification_prior",
