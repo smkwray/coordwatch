@@ -96,6 +96,9 @@ def main() -> None:
         TABLES_DIR / "qt_comparison_summary.csv",
         TABLES_DIR / "quarterly_descriptive.csv",
         TABLES_DIR / "correlation_matrix.csv",
+        TABLES_DIR / "research_snapshot_metrics.csv",
+        TABLES_DIR / "research_snapshot_model_terms.csv",
+        TABLES_DIR / "research_snapshot.json",
         # Publish artifacts
         PUBLISH_DIR / "summary.json",
         # Site data

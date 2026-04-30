@@ -57,9 +57,10 @@ make download      Download from public sources
 make extract       Build refunding statement index + text signals
 make panel         Build quarterly + weekly panels
 make episodes      Classify quarters by alignment state
-make descriptive   Build regime/episode summary tables
 make reaction      Treasury reaction function (OLS)
 make lp            Weekly local projections
+make descriptive   Build regime/episode summary tables
+make snapshot      Build compact research snapshot tables
 make publish       JSON artifacts for the site
 make site          Build site manifest
 make verify        Check all artifacts present

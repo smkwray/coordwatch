@@ -1,6 +1,6 @@
 PYTHON ?= python
 
-.PHONY: install doctor bootstrap demo-data download extract panel episodes reaction lp figures descriptive publish site mvp offline-demo verify test clean
+.PHONY: install doctor bootstrap demo-data download extract panel episodes reaction lp figures descriptive snapshot publish site mvp offline-demo verify test clean
 
 install:
 	$(PYTHON) -m pip install -e ".[dev]"
@@ -46,6 +46,9 @@ figures:
 descriptive:
 	$(PYTHON) scripts/20_build_descriptive_tables.py
 
+snapshot:
+	$(PYTHON) scripts/23_build_research_snapshot.py
+
 publish:
 	$(PYTHON) scripts/15_build_publish_artifacts.py
 
@@ -55,9 +58,9 @@ site:
 verify:
 	$(PYTHON) scripts/verify_repo.py
 
-mvp: bootstrap download extract panel episodes reaction lp descriptive publish site verify
+mvp: bootstrap download extract panel episodes reaction lp descriptive snapshot publish site verify
 
-offline-demo: bootstrap demo-data panel episodes reaction lp descriptive publish site verify
+offline-demo: bootstrap demo-data panel episodes reaction lp descriptive snapshot publish site verify
 
 test:
 	$(PYTHON) -B -m pytest tests/ -q
